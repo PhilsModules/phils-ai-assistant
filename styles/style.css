@@ -1,0 +1,196 @@
+/* --- GRUNDGERÜST (Standard-Werte) --- */
+:root {
+    --ai-bg: rgba(19, 19, 20, 0.98);
+    --ai-text: #e3e3e3;
+    --ai-text-muted: rgba(255,255,255,0.6);
+    --ai-input-bg: rgba(30, 31, 32, 0.8);
+    --ai-input-border: rgba(255,255,255,0.15);
+    --ai-border-color: #444;
+    --ai-accent: #1c87e5;
+    --ai-gradient: linear-gradient(90deg, #1c87e5, #8a3ab9);
+    --ai-font: "Helvetica Neue", Arial, sans-serif;
+    --ai-backdrop: blur(5px);
+    --ai-btn-text: #fff;
+    
+    /* Wizard Variablen */
+    --wiz-section-bg: rgba(255,255,255,0.05);
+    --wiz-hint: rgba(255,255,255,0.5);
+    --wiz-option-bg: #333;
+    --wiz-option-color: #fff;
+}
+
+/* --- HAUPTFENSTER --- */
+.ai-assistant-window.window-app {
+    background: var(--ai-bg) !important;
+    color: var(--ai-text) !important;
+    border: 1px solid var(--ai-border-color) !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
+    font-family: var(--ai-font) !important;
+    backdrop-filter: var(--ai-backdrop);
+}
+
+body.ai-theme-light .ai-assistant-window.window-app {
+    border: 2px solid #5e5c56 !important;
+    box-shadow: 0 0 15px rgba(0,0,0,0.3) !important;
+}
+
+.ai-assistant-window .window-header {
+    border-bottom: 1px solid var(--ai-input-border) !important;
+    color: var(--ai-text) !important;
+    background: transparent !important;
+    padding: 0 8px !important; 
+    height: 30px !important;    
+    line-height: 28px !important;
+}
+.ai-assistant-window .window-title { font-weight: bold; font-size: 1.1em; }
+.ai-assistant-window .window-content {
+    background: transparent !important;
+    color: var(--ai-text) !important;
+    padding: 10px !important;
+}
+
+/* --- HEADER BUTTON --- */
+.window-header .header-button.ai-assistant-btn {
+    background: transparent !important; 
+    border: none !important;
+    box-shadow: none !important;
+    color: inherit !important; 
+    font-weight: bold;
+    font-size: 0.95em;
+    margin-right: 20px; 
+}
+
+.window-header .header-button.ai-assistant-btn i {
+    color: var(--ai-accent) !important; 
+    margin-right: 5px;
+    filter: drop-shadow(0 0 2px var(--ai-accent)); 
+    transition: all 0.2s ease;
+}
+
+.window-header .header-button.ai-assistant-btn:hover i {
+    transform: scale(1.15);
+    text-shadow: 0 0 8px var(--ai-accent);
+}
+
+/* --- EINGABEFELDER --- */
+.ai-assistant-window textarea,
+.ai-assistant-window input[type="text"],
+.ai-assistant-window select {
+    background-color: var(--ai-input-bg) !important;
+    color: var(--ai-text) !important;
+    border: 1px solid var(--ai-input-border) !important;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    font-family: inherit;
+    padding: 4px 8px;
+    border-radius: 4px;
+    width: 100%;
+    box-sizing: border-box;
+}
+.ai-assistant-window textarea::placeholder { color: var(--ai-text); opacity: 0.5; }
+.ai-assistant-window textarea:focus,
+.ai-assistant-window input:focus,
+.ai-assistant-window select:focus {
+    border-color: var(--ai-accent) !important;
+    box-shadow: 0 0 5px var(--ai-accent) !important;
+    outline: none;
+}
+
+/* --- WIZARD --- */
+.ai-assistant-window .wizard-section {
+    margin-bottom: 6px; 
+    padding: 8px 10px;  
+    background: var(--wiz-section-bg);
+    border-radius: 6px;
+    border: 1px solid var(--ai-input-border);
+}
+.ai-assistant-window .wizard-label {
+    display: flex; align-items: center; gap: 8px;
+    font-weight: bold; margin-bottom: 2px;
+    font-size: 0.95em; color: inherit;
+}
+.ai-assistant-window .wizard-hint {
+    font-size: 0.8em; color: var(--wiz-hint); margin-bottom: 4px; line-height: 1.2;
+}
+
+.ai-assistant-window .wizard-select,
+.ai-assistant-window .wizard-input {
+    height: 28px !important;
+    line-height: 28px !important;
+    font-size: 0.9em;
+    padding: 0 6px !important;
+}
+
+.ai-assistant-window option {
+    background: var(--wiz-option-bg);
+    color: var(--wiz-option-color);
+}
+
+.wizard-gm-title {
+    border: none; text-align: center; 
+    margin: 5px 0 8px 0;
+    font-weight: bold; opacity: 0.9; 
+    font-size: 1.0em; color: var(--ai-text);
+}
+.wizard-btn-wrapper { 
+    margin-top: 10px; margin-bottom: 5px;
+}
+
+/* --- PILLS --- */
+.gemini-nav-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 15px; }
+.gemini-pill {
+    display: flex; align-items: center; justify-content: center; gap: 8px; padding: 6px 14px;
+    border-radius: 20px; background: var(--ai-input-bg); border: 1px solid var(--ai-input-border);
+    cursor: pointer; transition: all 0.2s ease; font-size: 0.9em; font-weight: bold;
+    color: var(--ai-text-muted); user-select: none; white-space: nowrap;
+}
+.gemini-pill:hover { background: var(--wiz-section-bg); opacity: 1; border-color: var(--ai-accent); color: var(--ai-text); }
+.gemini-pill.active {
+    border: none; background: var(--ai-gradient);
+    color: var(--ai-btn-text); opacity: 1;
+    box-shadow: 0 2px 8px var(--ai-accent);
+    padding: 7px 15px;
+}
+.gemini-pill.active i { color: var(--ai-btn-text); }
+.gemini-pill input[type="radio"] { display: none; }
+
+/* --- BUTTON --- */
+.gemini-main-button {
+    border-radius: 25px !important; background: var(--ai-gradient) !important;
+    border: none !important; color: var(--ai-btn-text) !important;
+    text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
+    transition: all 0.2s ease !important;
+    padding: 6px 0 !important;
+    margin-top: 5px;
+}
+.gemini-main-button:hover { box-shadow: 0 0 15px var(--ai-accent) !important; transform: translateY(-1px); filter: brightness(1.1); }
+.gemini-main-button i { color: var(--ai-btn-text) !important; margin-right: 8px; }
+
+/* --- MISC --- */
+.gemini-checkbox-container {
+    margin-top: 8px; font-size: 0.9em; display: flex; align-items: center; justify-content: center;
+    gap: 8px; background: var(--ai-input-bg); padding: 4px 10px; border-radius: 6px; min-height: 28px;
+    border: 1px solid var(--ai-input-border);
+}
+.gemini-info-icon { color: var(--ai-accent); margin-right: 6px; }
+.ai-result-label { font-weight: bold; margin-bottom: 5px; display: block; color: var(--ai-text); }
+
+/* --- INLINE BUTTON --- */
+.ai-inline-btn {
+    color: var(--ai-accent) !important; 
+    display: inline-block !important;
+    vertical-align: middle;
+    margin-left: 6px !important; 
+    cursor: pointer; 
+    opacity: 0.9 !important;
+    transition: all 0.2s; 
+    font-size: 0.95em; 
+    z-index: 99; 
+    position: relative;
+    white-space: nowrap; 
+}
+.ai-inline-btn:hover { 
+    transform: scale(1.2); 
+    filter: drop-shadow(0 0 4px var(--ai-accent)); 
+    opacity: 1 !important;
+}

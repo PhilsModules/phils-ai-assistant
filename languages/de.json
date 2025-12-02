@@ -1,0 +1,171 @@
+{
+  "AIASSISTANT": {
+    "Settings": {
+      "Language": {
+        "Name": "Sprache",
+        "Hint": "In welcher Sprache soll der Assistent antworten?"
+      },
+      "Provider": {
+        "Name": "KI-Modell",
+        "Hint": "Wähle den Anbieter (das 'Gehirn')."
+      },
+      "Theme": {
+        "Name": "Design (Optik)",
+        "Hint": "Wie soll das Fenster aussehen?"
+      },
+      "GameSystem": {
+        "Name": "Spielsystem",
+        "Hint": "Das Regelwerk für die Antworten."
+      },
+      "MinRole": {
+        "Name": "Zugriff erlauben ab",
+        "Hint": "Welche Rolle müssen Nutzer mindestens haben?"
+      },
+      "PlayerUpdateActor": {
+        "Name": "Spieler: Charaktere ändern",
+        "Hint": "Dürfen Spieler ihre eigenen Charakterwerte per KI ändern?"
+      },
+      "PlayerUpdateItem": {
+        "Name": "Spieler: Gegenstände ändern",
+        "Hint": "Dürfen Spieler ihre Items/Zauber per KI ändern?"
+      },
+      "PlayerUpdateJournal": {
+        "Name": "Spieler: Notizen ändern",
+        "Hint": "Dürfen Spieler Journal-Einträge per KI ändern?"
+      },
+      "SendFullData": {
+        "Name": "Standard: Viel Kontext",
+        "Hint": "Soll standardmäßig mehr Kontext gesendet werden?"
+      },
+      "WorldDefault": {
+        "Name": "Standard-KI für neue Spieler",
+        "Hint": "Welche KI wird neuen Spielern vorgeschlagen?"
+      }
+    },
+    "UI": {
+      "ModeLabel": "Was möchtest du tun?",
+      "ModeUpdate": "Werte anpassen",
+      "ModeChat": "Frage stellen / Lore",
+      "ModeImage": "Bild-Idee generieren",
+      "ModeStory": "Geschichte schreiben",
+      "SelectPages": "Seiten auswählen:",
+      "CheckboxFullData": "Mehr Kontext nutzen (Präzisere Ergebnisse)",
+      "InfoText": "Ändert Werte, Attribute oder Beschreibungen dieses Dokuments.",
+      "InfoTextChat": "Stelle eine Frage zur Geschichte oder den Regeln dieses Dokuments.",
+      "InfoTextImage": "Erstellt eine detaillierte Bildbeschreibung für Bild-Generatoren.",
+      "InfoTextStory": "Schreibt oder erweitert den Inhalt der Journal-Seiten (Story/Plot).",
+      "PromptLabel": "Deine Anweisung ({systemName}):",
+      "PromptPlaceholder": "Z.B.: Mach den NPC stärker... ODER: Beschreibe das Aussehen wie ein Ölgemälde...",
+      "BtnCopy": "Kopieren & KI öffnen (dann STRG+V)",
+      "PromptCopied": "Kopiert! 👉 Drücke jetzt STRG+V im KI-Chat!",
+      "CopyError": "Kopieren fehlgeschlagen.",
+      "ResultLabel": "Schritt 2: Antwort der KI hier einfügen:",
+      "BtnClear": "Eingabe löschen",
+      "BtnUpdate": "Änderungen anwenden",
+      "Success": "{docName} erfolgreich aktualisiert!",
+      "BackupCreated": "Sicherheitskopie erstellt: {name}",
+      "ErrorJsonInvalid": "Kein gültiges JSON gefunden. (Fehlen die ```json Klammern?)",
+      "WizTitle": "Willkommen, {name}!",
+      "WizSubtitle": "Dein Assistent ist bereit. Richten wir ihn kurz ein.",
+      "WizProviderLabel": "Dein KI-Partner",
+      "WizProviderHint": "Wer soll dir helfen? Wähle deinen Favoriten.",
+      "WizThemeLabel": "Dein Design",
+      "WizThemeHint": "Welchen Look bevorzugst du?",
+      "WizThemeAuto": "Automatisch (Passend zur KI)",
+      "WizLangLabel": "Sprache",
+      "WizLangHint": "In welcher Sprache wollt ihr kommunizieren?",
+      "WizGMTitle": "🛡️ Spielleiter-Optionen",
+      "WizSystemLabel": "Erkanntes Spielsystem",
+      "WizSystemHint": "Wir nutzen dieses System für Regel-Kontext.",
+      "WizRoleLabel": "Wer darf das nutzen?",
+      "WizRoleHint": "Lege fest, wer den Assistenten sehen darf.",
+      "WizDefaultLabel": "Empfehlung für Spieler",
+      "WizDefaultHint": "Welche KI sollen deine Spieler standardmäßig nutzen?",
+      "WizBtnSave": "Los geht's!",
+      "WizReady": "Bereit für das Abenteuer!"
+    },
+    "Prompts": {
+      "UpdateItem": [
+        "Du bist ein Experte für Foundry VTT und das Spielsystem: {systemName}.",
+        "Deine Aufgabe: Erstelle ein PARTIELLES JSON Update für das folgende Dokument (Actor, Item, Journal) basierend auf meiner Anweisung.",
+        "",
+        "ORIGINAL DATEN:",
+        "```json",
+        "{jsonString}",
+        "```",
+        "",
+        "MEINE ANWEISUNG:",
+        "{userPrompt}",
+        "",
+        "WICHTIG - ANTWORT REGELN:",
+        "1. NUR PARTIELLES UPDATE: Gib NUR die verschachtelten Keys zurück, die sich tatsächlich geändert haben.",
+        "2. IDs SCHÜTZEN (KRITISCH): Behalte die `_id` für alle verschachtelten Objekte (Journal Pages, Items, Effects). Wenn du eine Page/Item ohne `_id` zurückgibst, löscht Foundry das Original!",
+        "3. TEXT SCHÜTZEN: Wenn das Input-JSON leere Textfelder hat (wegen Daten-Optimierung), gib diese NICHT zurück. Wiederhole keinen Text, es sei denn, du änderst ihn inhaltlich.",
+        "4. ARRAYS: Füge Einträge in Arrays nur hinzu, wenn du sie änderst.",
+        "5. ROOT ID: Du darfst die `_id` des ROOT-Objekts weglassen, aber NICHT von verschachtelten Kindern.",
+        "6. SYNTAX: Gib valides JSON in einem Markdown Code-Block zurück.",
+        "",
+        "ANTWORT FORMAT:",
+        "1. Kurze Zusammenfassung der Änderungen.",
+        "2. Das PARTIELLE JSON in einem Markdown Code-Block (```json ... ```).",
+        "3. Anweisung: 'Kopiere den Code oben und füge ihn in das Foundry-Fenster ein.'"
+      ],
+      "ChatQuestion": [
+        "Du bist ein Experte für Foundry VTT und das Spielsystem: {systemName}.",
+        "Ich habe eine Frage zu: \"{docName}\".",
+        "",
+        "Hintergrund-Info (Beschreibung/Bio):",
+        "{docDesc}",
+        "",
+        "MEINE FRAGE:",
+        "{userPrompt}",
+        "",
+        "Bitte antworte kurz und verständlich auf Deutsch."
+      ],
+      "GenerateImage": [
+        "Du bist ein Experte für Art Direction für das Spielsystem: {systemName}.",
+        "Deine Aufgabe: Analysiere die Daten und erstelle einen 'Copy-Paste' Bild-Prompt.",
+        "Generiere das Bild noch NICHT. Erstelle zuerst die Text-Beschreibung.",
+        "",
+        "QUELL-DATEN (Foundry VTT):",
+        "{docDesc}",
+        "",
+        "BENUTZER-ANWEISUNG:",
+        "{userPrompt}",
+        "",
+        "STRENGE REGELN FÜR AUSRÜSTUNG:",
+        "1. Beschreibe NUR Ausrüstung/Waffen, die explizit in den QUELL-DATEN (JSON/Text) stehen.",
+        "2. Erfinde KEINE Gegenstände. Wenn keine Waffen da sind, beschreibe keine.",
+        "",
+        "AUFTRAG:",
+        "1. Analysiere das JSON/Text präzise.",
+        "2. Schreibe eine visuelle Beschreibung (in Englisch).",
+        "3. Platziere diese Beschreibung AM ENDE in einem Code-Block (```text ... ```).",
+        "4. Schreibe dazu: 'Wenn du zufrieden bist, kopiere den Textblock oben und sende ihn als Nachricht in einem NEUEN Chat (nicht hier!), um das Bild zu generieren.'"
+      ],
+      "WriteStory": [
+        "Du bist ein kreativer Autor für das Rollenspielsystem: {systemName}.",
+        "Deine Aufgabe: Schreibe Inhalt (Story/Beschreibung) für dieses Journal Entry.",
+        "",
+        "ORIGINAL DATEN (JSON):",
+        "```json",
+        "{jsonString}",
+        "```",
+        "",
+        "MEINE ANWEISUNG:",
+        "{userPrompt}",
+        "",
+        "REGELN FÜR DIE ANTWORT (SEHR WICHTIG):",
+        "1. ZIEL: Bearbeite primär das Feld `text.content` innerhalb der `pages`.",
+        "2. FALL A (Array `pages` ist LEER): Erstelle eine neue Page (neues Objekt im Array).",
+        "3. FALL B (Array hat Einträge): Du MUSST die existierende `_id` verwenden. Erstelle KEINE neue Page, außer es wird explizit ein 'neues Kapitel' verlangt.",
+        "4. FORMATIERUNG: Nutze HTML für den Text (<h1>, <p>, <b>, etc.).",
+        "5. JSON SAFETY: Verwende KEINE doppelten Anführungszeichen (\") im Textinhalt! Nutze ' oder &quot;.",
+        "",
+        "ANTWORT FORMAT:",
+        "1. Kurze Zusammenfassung.",
+        "2. Das PARTIELLE JSON in einem Markdown Code-Block (```json ... ```)."
+      ]
+    }
+  }
+}
