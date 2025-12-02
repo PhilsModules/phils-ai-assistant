@@ -30,7 +30,7 @@ The module acts as an intelligent "Prompt Engineer". It reads data from your act
 2.  Go to the **Add-on Modules** tab.
 3.  Click **Install Module**.
 4.  Paste the following **Manifest URL** into the field:
-    ``
+    ```
     https://github.com/PhilsModules/phils-ai-assistant/releases/latest/download/module.json
     ```
 5.  Click **Install**.
