@@ -30,8 +30,8 @@ The module acts as an intelligent "Prompt Engineer". It reads data from your act
 2.  Go to the **Add-on Modules** tab.
 3.  Click **Install Module**.
 4.  Paste the following **Manifest URL** into the field:
-    ```
-    https://github.com/weylen86/phils-ai-assistent/releases/latest/download/module.json
+    ``
+    https://github.com/PhilsModules/phils-ai-assistant/releases/latest/download/module.json
     ```
 5.  Click **Install**.
 
@@ -66,7 +66,7 @@ Click the icon and choose what you want to do:
 **Looking for the Translation Feature?**
 The translation functionality has been moved to a standalone module to keep things clean and focused.
 You can find **Phil's Journal Translator** here:
-[https://github.com/weylen86/phils-journal-translator/releases/latest/download/module.json](https://github.com/weylen86/phils-journal-translator/releases/latest/download/module.json)
+[https://github.com/PhilsModules/phils-journal-translator/releases/latest/download/module.json](https://github.com/PhilsModules/phils-journal-translator/releases/latest/download/module.json)
 
 ---
 
@@ -99,7 +99,7 @@ Das Modul arbeitet als intelligenter "Prompt-Engineer". Es liest die Daten deine
 3.  Klicke auf **Install Module**.
 4.  Füge die folgende **Manifest URL** unten ein:
     ```
-    https://github.com/weylen86/phils-ai-assistent/releases/latest/download/module.json
+    https://github.com/PhilsModules/phils-ai-assistant/releases/latest/download/module.json
     ```
 5.  Klicke auf **Install**.
 
@@ -123,7 +123,7 @@ Nach der Aktivierung findest du in den Charakterbögen, Items und Journalen (obe
 ---
 
 ## 👨‍💻 Author
-* **Phil** (GitHub: [weylen86](https://github.com/weylen86))
+* **Phil** (GitHub: [PhilsModules](https://github.com/PhilsModules))
 
 ## 📄 License
 This module is licensed under the [GPL-3.0 License](LICENSE).
