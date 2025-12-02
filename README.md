@@ -66,7 +66,7 @@ Click the icon and choose what you want to do:
 **Looking for the Translation Feature?**
 The translation functionality has been moved to a standalone module to keep things clean and focused.
 You can find **Phil's Journal Translator** here:
-[https://github.com/PhilsModules/phils-journal-translator/releases/latest/download/module.json](https://github.com/PhilsModules/phils-journal-translator/releases/latest/download/module.json)
+[https://github.com/PhilsModules/phils-journal-translator](https://github.com/PhilsModules/phils-journal-translator)
 
 ---
 
