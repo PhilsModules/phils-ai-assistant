@@ -4,6 +4,7 @@
 ![Foundry v12 Compatible](https://img.shields.io/badge/Foundry-v12-green)
 ![License](https://img.shields.io/badge/License-GPLv3-blue)
 ![Version](https://img.shields.io/badge/Version-1.0.0-orange)
+[![Patreon](https://img.shields.io/badge/Support-Patreon-ff424d?logo=patreon)](https://www.patreon.com/PhilsModules)
 
 **Phil's AI Assistant** connects your Foundry VTT world with the power of modern AI (Google Gemini, ChatGPT, Claude, Copilot, Perplexity).
 
@@ -46,40 +47,29 @@ The module acts as an intelligent "Prompt Engineer". It reads stats, description
 
 **Dein kostenloser KI-Begleiter für Foundry VTT.**
 
-Phil's AI Assistant verbindet deine Foundry VTT Welt mit der Power moderner KI (Google Gemini, ChatGPT, Claude, Copilot, Perplexity).
+Phil's AI Assistant verbindet deine Foundry VTT Welt mit der Power moderner KI – ganz ohne API-Kosten. Es liest die Daten deiner Akteure oder Gegenstände und erstellt den perfekten Befehl für die KI.
 
-Das Besondere: **Du brauchst keine teuren API-Keys!**
-Das Modul arbeitet als intelligenter "Prompt-Engineer". Es liest automatisch Werte, Beschreibungen und Regeln deiner Akteure oder Gegenstände und erstellt den perfekten Befehl für die KI.
+## 🚀 Funktionen
 
-## 🚀 Hauptfunktionen
-
-* **Keine API-Kosten:** Nutze einfach die kostenlosen Web-Interfaces von Gemini, ChatGPT & Co.
-* **Kontext-Bewusst:** Die KI kennt die Werte und Texte deiner Items und Akteure.
-* **5 Mächtige Modi:**
-    * 💬 **Chat / Lore:** Stelle Fragen zu Regeln oder Hintergrundgeschichten.
-    * 🎨 **Image Prompts:** Erstellt detaillierte Bildbeschreibungen für KI-Bildgeneratoren.
-    * ✏️ **Werte anpassen:** Lass die KI Werte ändern, Texte umschreiben oder Rechtschreibung korrigieren.
-    * 📖 **Geschichte schreiben:** Lass die KI kreative Inhalte für deine Journale verfassen.
-* **Sicherheit:** Erstellt automatisch ein **Backup** (Kopie) deines Dokuments, bevor Änderungen angewendet werden.
+* **Kostenlos:** Nutze die Web-Interfaces der KI-Anbieter.
+* **Kontext-Bewusst:** Kennt die Werte und Texte deiner Items/Akteure.
+* **5 Modi:** Chat (Regelfragen), Bild-Prompts, Werte ändern, Story schreiben.
+* **Sicherheit:** Erstellt automatisch Backups vor Änderungen.
 
 ## 📦 Installation
+Nutze diese Manifest URL:
+```
+https://github.com/PhilsModules/phils-ai-assistant/releases/latest/download/module.json`
+```
 
-1.  Öffne Foundry VTT.
-2.  Gehe zum Reiter **Add-on Modules**.
-3.  Klicke auf **Install Module**.
-4.  Füge die folgende **Manifest URL** unten ein:
-    ```
-    https://github.com/PhilsModules/phils-ai-assistant/releases/latest/download/module.json
-    ```
-5.  Klicke auf **Install**.
+---
 
-## 📖 Bedienung
+## ❤️ Support the Development
+If you enjoy this module and want to support open-source development for Foundry VTT, check out my Patreon!
 
-1.  **Das Gehirn:** Klicke auf das kleine 🧠 Symbol in den Charakterbögen, Items oder Journalen.
-2.  **Modus wählen:** Entscheide, was du tun willst (Fragen, Bild-Idee, Update, Story).
-3.  **Prompt kopieren:** Klicke auf **"Kopieren & KI öffnen"**.
-4.  **KI fragen:** Füge den Text bei Gemini/ChatGPT ein und kopiere die Antwort.
-5.  **Anwenden:** Füge das Ergebnis im Foundry-Fenster ein und klicke auf **"Änderungen anwenden"**.
+Gefällt dir das Modul? Unterstütze die Weiterentwicklung auf Patreon!
+
+[**Become a Patron**](https://www.patreon.com/PhilsModules)
 
 ---
 
