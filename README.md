@@ -15,7 +15,7 @@ The module acts as an intelligent "Prompt Engineer". It reads data from your act
 
 * **No API Costs:** Works with the free web versions of Gemini, ChatGPT, & Co.
 * **Context-Aware:** Automatically reads stats, descriptions, and rules from your items and actors.
-* **4 Powerful Modes:**
+* **5 Powerful Modes:**
     * 💬 **Chat / Lore:** Ask questions about rules or the backstory of an item.
     * 🎨 **Image Prompts:** Generates detailed visual descriptions based on character stats.
     * ✏️ **Update / Edit:** Let the AI modify stats, rewrite descriptions, or fix typos.
@@ -72,7 +72,7 @@ You can find **Phil's Journal Translator** here:
 
 ---
 
-# Deutsche Anleitung
+# 🇩🇪 Deutsche Beschreibung
 
 **Dein kostenloser KI-Begleiter für Foundry VTT.**
 
@@ -85,7 +85,7 @@ Das Modul arbeitet als intelligenter "Prompt-Engineer". Es liest die Daten deine
 
 * **Keine API-Kosten:** Funktioniert mit den kostenlosen Web-Versionen von Gemini, ChatGPT & Co.
 * **Kontext-Bewusst:** Liest automatisch Werte, Beschreibungen und Regeln.
-* **4 Mächtige Modi:**
+* **5 Mächtige Modi:**
     * 💬 **Chat / Lore:** Stelle Fragen zu Regeln oder Hintergrundgeschichten.
     * 🎨 **Image Prompts:** Erstellt detaillierte Bildbeschreibungen für dein Character-Art.
     * ✏️ **Werte anpassen:** Lass die KI Werte ändern oder Rechtschreibung korrigieren.
@@ -124,15 +124,8 @@ Nach der Aktivierung findest du in den Charakterbögen, Items und Journalen (obe
 
 ---
 
-## ❤️ Support the Development
-If you enjoy this module and want to support open-source development for Foundry VTT, check out my Patreon!
+## 👨‍💻 Author
+* **Phil** (GitHub: [PhilsModules](https://github.com/PhilsModules))
 
-Gefällt dir das Modul? Unterstütze die Weiterentwicklung auf Patreon!
-
-[**Become a Patron**](https://www.patreon.com/PhilsModules)
-
----
-
-**Made with ❤️ for the Foundry VTT Community by [PhilsModules](https://github.com/PhilsModules)**
-*Licensed under GPL-3.0*
- 
+## 📄 License
+This module is licensed under the [GPL-3.0 License](LICENSE).
