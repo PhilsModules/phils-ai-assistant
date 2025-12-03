@@ -124,8 +124,14 @@ Nach der Aktivierung findest du in den Charakterbögen, Items und Journalen (obe
 
 ---
 
-## 👨‍💻 Author
-* **Phil** (GitHub: [PhilsModules](https://github.com/PhilsModules))
+## ❤️ Support the Development
+If you enjoy this module and want to support open-source development for Foundry VTT, check out my Patreon!
 
-## 📄 License
-This module is licensed under the [GPL-3.0 License](LICENSE).
+Gefällt dir das Modul? Unterstütze die Weiterentwicklung auf Patreon!
+
+[**Become a Patron**](https://www.patreon.com/PhilsModules)
+
+---
+
+**Made with ❤️ for the Foundry VTT Community by [PhilsModules](https://github.com/PhilsModules)**
+*Licensed under GPL-3.0*
