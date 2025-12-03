@@ -135,3 +135,4 @@ Gefällt dir das Modul? Unterstütze die Weiterentwicklung auf Patreon!
 
 **Made with ❤️ for the Foundry VTT Community by [PhilsModules](https://github.com/PhilsModules)**
 *Licensed under GPL-3.0*
+ 
