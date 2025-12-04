@@ -562,10 +562,29 @@ function startGeminiDialog(doc, specialContext = null) {
                 html.find('.page-selector').prop('checked', false);
             });
 
-            const updateVisibility = () => {
+            const updateVisibility = (isInit = false) => {
                 const mode = html.find('input[name="mode"]:checked').val();
                 const pageWrapper = html.find('#page-selection-wrapper');
                 const promptSection = html.find('#prompt-section');
+                const sendFullCheckbox = html.find('#send-full');
+
+                // Auto-toggle Send Full Data based on mode
+                // Only do this on mode change, or if we want to enforce defaults on init
+                // User requirement: "startet in dietmodus [chat/image], bei werte anpassen [update] soll dann mehr kontext an sein"
+                if (!isInit) { // Only auto-switch when user actively changes mode to avoid overriding manual initial settings if we ever have them
+                    if (mode === 'chat' || mode === 'image' || mode === 'story') {
+                        sendFullCheckbox.prop('checked', false);
+                    } else if (mode === 'update') {
+                        sendFullCheckbox.prop('checked', true);
+                    }
+                } else {
+                    // Initial state logic (optional, but good for consistency)
+                    if (mode === 'chat' || mode === 'image' || mode === 'story') {
+                        sendFullCheckbox.prop('checked', false);
+                    } else if (mode === 'update') {
+                        sendFullCheckbox.prop('checked', true);
+                    }
+                }
 
                 // Wir zeigen die Seitenauswahl nun IMMER bei Journalen, damit man auch für Fragen/Bilder filtern kann.
                 if (isJournal) {
@@ -584,9 +603,9 @@ function startGeminiDialog(doc, specialContext = null) {
             html.find('.gemini-pill').click(function () {
                 $(this).addClass('active').siblings().removeClass('active').find('input').prop('checked', false);
                 $(this).find('input').prop('checked', true);
-                updateVisibility();
+                updateVisibility(false);
             });
-            updateVisibility();
+            updateVisibility(true);
         }
     });
     dialog.render(true);
@@ -661,7 +680,23 @@ function showResultDialog(doc, initialContent = "", errorMsg = null) {
 // --- DATA PROCESSING & PROMPTS ---
 function getCleanData(doc, sendFull, allowedPageIds = null) {
     const rawData = doc.toObject();
-    delete rawData._stats; delete rawData.ownership; delete rawData.flags; delete rawData.sort; delete rawData.folder;
+
+    // 1. GLOBAL CLEANUP (Always remove these, they are irrelevant for AI)
+    delete rawData._stats;
+    delete rawData.ownership;
+    delete rawData.flags;
+    delete rawData.sort;
+    delete rawData.folder;
+    delete rawData._key;
+    delete rawData.prototypeToken; // Visual data, huge and irrelevant
+    delete rawData.img;
+    delete rawData.thumb;
+    delete rawData.effects; // Active effects are often redundant or technical
+
+    // Remove IDs if not sending full data (IDs are needed for Update mode)
+    if (!sendFull) {
+        delete rawData._id;
+    }
 
     if (doc.documentName === "JournalEntry" && rawData.pages && allowedPageIds) {
         rawData.pages = rawData.pages.filter(p => allowedPageIds.includes(p._id));
@@ -671,18 +706,49 @@ function getCleanData(doc, sendFull, allowedPageIds = null) {
         const associatedSpells = doc.parent.items.filter(i => i.type === "spell" && i.system.location?.value === doc.id);
         rawData.containedSpells = associatedSpells.map(s => { return { name: s.name, level: s.system.level?.value }; });
     }
-    if (!sendFull) {
-        delete rawData.prototypeToken; delete rawData.img; delete rawData.thumb;
-        if (doc.documentName === "Actor" || doc.documentName === "Item") {
-            if (rawData.items && Array.isArray(rawData.items)) {
-                rawData.items = rawData.items.map(i => {
-                    const clean = { ...i };
-                    if (clean.system?.description?.value) clean.system.description.value = "";
-                    return clean;
-                });
-            }
-        }
+
+    // System Data Cleanup
+    if (rawData.system) {
+        delete rawData.system._migration;
+        delete rawData.system.publication;
+        // We remove rules by default as they are very verbose. 
+        // If advanced users need rules, we might need a separate setting, but for now we optimize for size.
+        delete rawData.system.rules;
     }
+
+    // Item Cleanup (Iterate through all items)
+    if ((doc.documentName === "Actor" || doc.documentName === "Item") && rawData.items && Array.isArray(rawData.items)) {
+        rawData.items = rawData.items.map(i => {
+            const cleanItem = {
+                name: i.name,
+                type: i.type,
+                system: i.system
+            };
+
+            // Keep ID only if sendFull is true (for updates)
+            if (sendFull) {
+                cleanItem._id = i._id;
+            }
+
+            if (cleanItem.system) {
+                delete cleanItem.system._migration;
+                delete cleanItem.system.publication;
+                delete cleanItem.system.rules;
+                delete cleanItem.system.slug;
+                // delete cleanItem.system.traits; // Keep traits, they provide context (e.g. "magical", "fire")
+
+                // Clean description: Strip HTML but keep the text content
+                if (cleanItem.system.description && cleanItem.system.description.value) {
+                    cleanItem.system.description.value = cleanItem.system.description.value
+                        .replace(/<[^>]*>?/gm, ' ') // Replace tags with space
+                        .replace(/\s+/g, ' ')       // Collapse multiple spaces
+                        .trim();
+                }
+            }
+            return cleanItem;
+        });
+    }
+
     return rawData;
 }
 
@@ -692,21 +758,26 @@ function getContextDescription(doc, rawData) {
     else if (rawData.system?.details?.biography?.value) desc = rawData.system.details.biography.value;
     else if (rawData.system?.details?.publicNotes) desc = rawData.system.details.publicNotes;
     else if (doc.documentName === "JournalEntry" && rawData.pages) desc = rawData.pages.map(p => p.text?.content || "").join("\n\n");
+
     if (rawData.containedSpells && rawData.containedSpells.length > 0) {
-        desc += "\n\n--- ENTHALTENE ZAUBER (Liste) ---\n" + rawData.containedSpells.map(s => `- ${s.name} (Level ${s.level || 1})`).join("\n");
+        desc += "\n\n### ENTHALTENE ZAUBER\n" + rawData.containedSpells.map(s => `- ${s.name} (Level ${s.level || 1})`).join("\n");
     }
-    let clean = desc.replace(/<[^>]*>?/gm, '').trim();
+
+    // Strip HTML from the main description as well
+    let clean = desc.replace(/<[^>]*>?/gm, '\n').replace(/\n\s*\n/g, '\n\n').trim();
     return clean ? clean.substring(0, 8000) : "(No description found)";
 }
 
 async function prepareFullDataPrompt(doc, userPrompt, systemName, sendFull, targetUrl, selectedPages = null) {
-    const jsonString = JSON.stringify(getCleanData(doc, sendFull, selectedPages), null, 2);
+    const cleanData = getCleanData(doc, sendFull, selectedPages);
+    const jsonString = sendFull ? JSON.stringify(cleanData, null, 2) : JSON.stringify(cleanData);
     const finalPrompt = resolvePrompt("UpdateItem", { systemName, jsonString, userPrompt });
     copyAndOpen(finalPrompt, doc, true, targetUrl);
 }
 
 async function prepareStoryPrompt(doc, userPrompt, systemName, sendFull, targetUrl, selectedPages = null) {
-    const jsonString = JSON.stringify(getCleanData(doc, sendFull, selectedPages), null, 2);
+    const cleanData = getCleanData(doc, sendFull, selectedPages);
+    const jsonString = sendFull ? JSON.stringify(cleanData, null, 2) : JSON.stringify(cleanData);
     const finalPrompt = resolvePrompt("WriteStory", { systemName, jsonString, userPrompt });
     copyAndOpen(finalPrompt, doc, true, targetUrl);
 }
@@ -717,18 +788,23 @@ async function prepareQuestionPrompt(doc, userPrompt, systemName, sendFull, targ
     const cleanDataForLogic = getCleanData(doc, sendFull, selectedPages);
     let descText = getContextDescription(doc, cleanDataForLogic);
     let headerInfo = "";
+
     if (specialContext && specialContext.type === 'skill') {
         const skillName = specialContext.name;
         const skillData = specialContext.data;
         const skillVal = skillData?.totalModifier || skillData?.value || "Unbekannt";
         const skillRank = skillData?.rank ? `(Rank: ${skillData.rank})` : "";
-        headerInfo = `\n!!! FOKUS AUF SKILL: ${skillName} !!!\nAktueller Wert: ${skillVal} ${skillRank}\nBitte beantworte die Frage spezifisch zu diesem Skill.\n\n`;
+        headerInfo = `\n> **FOKUS AUF SKILL: ${skillName}**\n> Aktueller Wert: ${skillVal} ${skillRank}\n> Bitte beantworte die Frage spezifisch zu diesem Skill.\n\n`;
         descText = headerInfo + descText;
     }
-    const jsonString = JSON.stringify(cleanDataForLogic, null, 2);
-    const fullContext = `TEXT / CONTENT:\n${descText}\n\nSTATS / DATA (JSON):\n\`\`\`json\n${jsonString}\n\`\`\``;
+
+    const jsonString = sendFull ? JSON.stringify(cleanDataForLogic, null, 2) : JSON.stringify(cleanDataForLogic);
+    // Markdown formatting for the clipboard content
+    const fullContext = `# ${cleanDataForLogic.name || "Character"}\n\n## DESCRIPTION\n${descText}\n\n## DATA (JSON)\n\`\`\`json\n${jsonString}\n\`\`\``;
+
     let docName = cleanDataForLogic.name;
     if (specialContext) docName = `${docName} (${specialContext.name})`;
+
     const finalPrompt = resolvePrompt("ChatQuestion", { systemName, docName: docName, docDesc: fullContext, userPrompt });
     copyAndOpen(finalPrompt, doc, false, targetUrl);
 }
@@ -736,10 +812,14 @@ async function prepareQuestionPrompt(doc, userPrompt, systemName, sendFull, targ
 async function prepareImagePrompt(doc, userPrompt, systemName, sendFull, targetUrl, selectedPages = null, specialContext = null) {
     const cleanDataForLogic = getCleanData(doc, sendFull, selectedPages);
     const descText = getContextDescription(doc, cleanDataForLogic);
-    const jsonString = JSON.stringify(cleanDataForLogic, null, 2);
-    const fullContext = `VISUAL DESCRIPTION / BIO:\n${descText}\n\nCHARACTER DATA (JSON):\n\`\`\`json\n${jsonString}\n\`\`\``;
+    const jsonString = sendFull ? JSON.stringify(cleanDataForLogic, null, 2) : JSON.stringify(cleanDataForLogic);
+
+    // Markdown formatting
+    const fullContext = `# ${cleanDataForLogic.name || "Character"}\n\n## VISUAL DESCRIPTION / BIO\n${descText}\n\n## CHARACTER DATA (JSON)\n\`\`\`json\n${jsonString}\n\`\`\``;
+
     let docName = cleanDataForLogic.name;
     if (specialContext) docName = `${docName} (${specialContext.name})`;
+
     const finalPrompt = resolvePrompt("GenerateImage", { systemName, docName: docName, docDesc: fullContext, userPrompt });
     copyAndOpen(finalPrompt, doc, false, targetUrl);
 }
@@ -798,15 +878,11 @@ async function processUpdate(doc, rawText) {
             }).filter(i => i !== null);
         }
 
-
-
-        if (jsonData.type && jsonData.type !== doc.type) ui.notifications.warn(`Achtung: Type-Change!`);
         await doc.update(jsonData);
-        ui.notifications.success(loc('Success', { docName: doc.name }));
-        return true;
-
-    } catch (e) {
-        console.error(e);
-        return e.message;
+        ui.notifications.info(loc('Success', { docName: doc.name }));
+        return null;
+    } catch (err) {
+        console.error("AI Assistant | Update Error:", err);
+        return err.message;
     }
 }

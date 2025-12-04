@@ -3,13 +3,19 @@
 ![Foundry v13 Compatible](https://img.shields.io/badge/Foundry-v13-brightgreen)
 ![Foundry v12 Compatible](https://img.shields.io/badge/Foundry-v12-green)
 ![License](https://img.shields.io/badge/License-GPLv3-blue)
-![Version](https://img.shields.io/badge/Version-1.0.0-orange)
+![Version](https://img.shields.io/badge/Version-1.1.0-orange)
 [![Patreon](https://img.shields.io/badge/Support-Patreon-ff424d?logo=patreon)](https://www.patreon.com/PhilsModules)
 
 **Phil's AI Assistant** connects your Foundry VTT world with the power of modern AI (Google Gemini, ChatGPT, Claude, Copilot, Perplexity).
 
 The core feature: **You don't need expensive API keys!**
 The module acts as an intelligent "Prompt Engineer". It reads data from your actors, items, or journals, creates the perfect prompt for the AI, and you simply copy it into the chat window of your favorite AI service.
+
+## 🆕 What's New in v1.1.0
+* **Optimized Data:** Technical ballast (flags, stats) is now **always** removed -> **Up to 50% smaller prompts** for ALL modes!
+* **Diet Mode:** Chat & Image modes use minified JSON & remove IDs -> **Additional 30% reduction** for maximum speed.
+* **Smart UI:** The "Send Full Data" checkbox automatically adapts to your mode (Chat vs. Update).
+* **Better Prompts:** Improved instructions for image generation and updates.
 
 ## 🚀 Features
 
@@ -80,6 +86,12 @@ Phil's AI Assistant verbindet deine Foundry VTT Welt mit der Power moderner KI (
 
 Das Besondere: **Du brauchst keine teuren API-Keys!**
 Das Modul arbeitet als intelligenter "Prompt-Engineer". Es liest die Daten deiner Akteure oder Gegenstände, erstellt den perfekten Befehl (Prompt) für die KI, und du musst ihn nur noch in das Chat-Fenster deiner Lieblings-KI kopieren.
+
+## 🆕 Neu in v1.1.0
+* **Optimierte Daten:** Technischer Ballast (Flags, Stats) wird nun **immer** entfernt -> **Bis zu 50% kleiner** für ALLE Modi!
+* **Diet Mode:** Chat & Bild Modi nutzen minifiziertes JSON & entfernen IDs -> **Zusätzlich 30% kleiner** für maximalen Speed.
+* **Smart UI:** Der "Viel Kontext" Haken passt sich automatisch an (Chat vs. Update).
+* **Bessere Prompts:** Optimierte Anweisungen für Bilder und Updates.
 
 ## 🚀 Funktionen
 
