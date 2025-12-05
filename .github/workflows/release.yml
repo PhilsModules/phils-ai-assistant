@@ -10,9 +10,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Publish Foundry Package
-        uses: ghost-fvtt/foundry-publish@v1
+      # Wir benutzen jetzt diesen bewährten Action-Anbieter:
+      - name: Publish to Foundry VTT
+        uses: cs96and/FoundryVTT-release-package@v1
         with:
+          # Dein Secret (Name muss stimmen!)
           package-token: ${{ secrets.FOUNDRY_API_TOKEN }}
-          manifest-url: https://github.com/${{ github.repository }}/releases/latest/download/module.json
-          download-url: https://github.com/${{ github.repository }}/releases/download/${{ github.event.release.tag_name }}/module.zip
+          
+          # Diese URL muss auf deine module.json im Release zeigen
+          manifest-url: https://github.com/${{ github.repository }}/releases/download/${{ github.event.release.tag_name }}/module.json
