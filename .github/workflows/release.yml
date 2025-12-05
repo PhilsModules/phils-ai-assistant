@@ -1,5 +1,6 @@
 name: Release Creation
 
+# Dieser Workflow startet, wenn du ein neues Release auf GitHub veröffentlichst
 on:
   release:
     types: [published]
@@ -8,14 +9,27 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      # 1. Code auschecken
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-      # Wir benutzen jetzt diesen bewährten Action-Anbieter:
-      - name: Publish to Foundry VTT
+      # 2. (Optional) Hier könnte man noch Build-Schritte einfügen, 
+      # falls du TypeScript oder CSS kompilieren musst.
+      # Wenn du nur HTML/JS/JSON hast, brauchst du hier nichts tun.
+
+      # 3. Das Modul bei FoundryVTT.com updaten
+      - name: Publish to Foundry VTT Repo
+        id: publish_foundry_repo
         uses: cs96and/FoundryVTT-release-package@v1
         with:
-          # Dein Secret (Name muss stimmen!)
-          package-token: ${{ secrets.FOUNDRY_API_TOKEN }}
+          # Hier greift er auf das Secret zu, das wir in Schritt 2 angelegt haben
+          package-token: ${{ secrets.FOUNDRY_VTT_RELEASE_TOKEN }}
           
-          # Diese URL muss auf deine module.json im Release zeigen
+          # Die URL zur manifest-Datei (module.json) im Release
+          # Das Script baut die URL automatisch anhand deiner Version zusammen
           manifest-url: https://github.com/${{ github.repository }}/releases/download/${{ github.event.release.tag_name }}/module.json
+
+      # 4. Erfolgsmeldung ausgeben (nur zur Info im Log)
+      - name: Log Success
+        if: success()
+        run: echo "Successfully published version ${{ github.event.release.tag_name }} to FoundryVTT!"
