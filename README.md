@@ -4,18 +4,17 @@
 ![Foundry v12 Compatible](https://img.shields.io/badge/Foundry-v12-green)
 ![License](https://img.shields.io/badge/License-GPLv3-blue)
 ![Version](https://img.shields.io/badge/Version-1.1.0-orange)
-[![Patreon](https://img.shields.io/badge/Support-Patreon-ff424d?logo=patreon)](https://www.patreon.com/PhilsModules)
+
+
+<a href="Updates.md"><img src="https://img.shields.io/badge/CHECK-Changelog-blue" style="height: 25px;"></a>
+<a href="https://www.patreon.com/PhilsModules"><img src="https://img.shields.io/badge/SUPPORT-Patreon-ff424d?logo=patreon" style="height: 25px;"></a>
 
 **Phil's AI Assistant** connects your Foundry VTT world with the power of modern AI (Google Gemini, ChatGPT, Claude, Copilot, Perplexity).
 
 The core feature: **You don't need expensive API keys!**
 The module acts as an intelligent "Prompt Engineer". It reads data from your actors, items, or journals, creates the perfect prompt for the AI, and you simply copy it into the chat window of your favorite AI service.
 
-## 🆕 What's New in v1.1.0
-* **Optimized Data:** Technical ballast (flags, stats) is now **always** removed -> **Up to 50% smaller prompts** for ALL modes!
-* **Diet Mode:** Chat & Image modes use minified JSON & remove IDs -> **Additional 30% reduction** for maximum speed.
-* **Smart UI:** The "Send Full Data" checkbox automatically adapts to your mode (Chat vs. Update).
-* **Better Prompts:** Improved instructions for image generation and updates.
+
 
 ## 🚀 Features
 
