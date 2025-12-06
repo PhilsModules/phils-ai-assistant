@@ -1,5 +1,8 @@
 # Changelog
 
+## v1.1.1
+* **Bug Fix:** Fixed a critical JSON syntax error in the German translation file (`de.json`). (Thanks for pointing it out @kleelue!)
+
 ## v1.1.0 - Diet Mode & Smart UI Update
 
 ### 🚀 New Features
