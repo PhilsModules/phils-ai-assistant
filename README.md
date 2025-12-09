@@ -3,13 +3,21 @@
 ![Foundry v13 Compatible](https://img.shields.io/badge/Foundry-v13-brightgreen)
 ![Foundry v12 Compatible](https://img.shields.io/badge/Foundry-v12-green)
 ![License](https://img.shields.io/badge/License-GPLv3-blue)
-![Version](https://img.shields.io/badge/Version-1.1.1-orange)
+![Version](https://img.shields.io/badge/Version-1.2.1-orange)
 
 
 <a href="Updates.md"><img src="https://img.shields.io/badge/CHECK-Changelog-blue" style="height: 25px;"></a>
 <a href="https://www.patreon.com/PhilsModules"><img src="https://img.shields.io/badge/SUPPORT-Patreon-ff424d?logo=patreon" style="height: 25px;"></a>
 
 **Phil's AI Assistant** connects your Foundry VTT world with the power of modern AI (Google Gemini, ChatGPT, Claude, Copilot, Perplexity).
+
+> [!NOTE]
+> **Compatibility:** This module is explicitly tested and optimized for **D&D 5e** and **Pathfinder 2e**.
+> While the universal injection logic usually works with other systems, full verified support is currently focused on these two.
+> If you encounter issues with other systems, please report them on [GitHub](https://github.com/PhilsModules/phils-ai-assistant/issues).
+
+> [!IMPORTANT]
+> **D&D 5e Note:** For Items in a character's inventory, the **"Brain Button"** currently ONLY appears when you open the item via **Right Click -> View Item**. It does not appear in the inline expansion (expand button) at this time.
 
 The core feature: **You don't need expensive API keys!**
 The module acts as an intelligent "Prompt Engineer". It reads data from your actors, items, or journals, creates the perfect prompt for the AI, and you simply copy it into the chat window of your favorite AI service.

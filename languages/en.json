@@ -40,6 +40,17 @@
       "WorldDefault": {
         "Name": "Default AI for Players",
         "Hint": "Suggestion for new players."
+      },
+      "PromptWarning": {
+        "Name": "Large Prompt Warning",
+        "Hint": "At what character count should the download suggestion appear?",
+        "Choices": {
+          "0": "Never (Disabled)",
+          "10000": "At 10,000 chars (~2,500 Tokens)",
+          "25000": "At 25,000 chars (~6,000 Tokens)",
+          "50000": "At 50,000 chars (~12,500 Tokens)",
+          "100000": "At 100,000 chars (~25,000 Tokens)"
+        }
       }
     },
     "UI": {
@@ -56,6 +67,12 @@
       "InfoTextStory": "Writes or expands the content of Journal pages (Story/Plot).",
       "PromptLabel": "Your Instruction ({systemName}):",
       "PromptPlaceholder": "E.g.: Buff this NPC... OR: Describe like an oil painting...",
+      "BtnDownload": "Download (JSON)",
+      "BtnDownloadSmall": "Download",
+      "LargePromptTitle": "Attention: Large Payload!",
+      "LargePromptBody": "Your prompt is very long ({size} chars). Sending large amounts of data to the AI can lead to errors. It is recommended to download the data as a JSON file and upload/paste it to the AI.",
+      "BtnDownloadFile": "Download as File",
+      "BtnCopyAnyway": "Copy Anyway",
       "BtnCopy": "Copy & Open AI (Then CTRL+V)",
       "PromptCopied": "Copied! 👉 Now press CTRL+V in the AI chat!",
       "CopyError": "Copy failed.",
@@ -81,6 +98,10 @@
       "WizRoleHint": "Minimum permission required.",
       "WizDefaultLabel": "Recommendation for Players",
       "WizDefaultHint": "Which AI should be default for your players?",
+      "WizSubLabel": "Subscription Status",
+      "WizSubHint": "Do you use a paid version (Plus/Advanced)?",
+      "WizSubFree": "No, Free Version (Limits applied)",
+      "WizSubPro": "Yes, Paid Subscription (Max Power)",
       "WizBtnSave": "Let's go!",
       "WizReady": "Ready for adventure!"
     },
@@ -167,6 +188,56 @@
         "RESPONSE FORMAT:",
         "1. Short summary.",
         "2. The PARTIAL JSON inside a Markdown Code Block (```json ... ```)."
+      ],
+      "ReadFileUpdate": [
+        "You are an expert for Foundry VTT and the game system: {systemName}.",
+        "Your task: Create a PARTIAL JSON update for the attached Document file based on my instruction.",
+        "",
+        "CONTEXT & DATA:",
+        "The original data (JSON) is in the attached file!",
+        "",
+        "MY INSTRUCTION:",
+        "{userPrompt}",
+        "",
+        "IMPORTANT - RESPONSE RULES:",
+        "1. PARTIAL UPDATE ONLY: Return ONLY the nested keys that actually changed.",
+        "2. PROTECT IDs (CRITICAL): Keep the `_id` for all nested objects (Journal Pages, Items, Effects).",
+        "3. SYNTAX: Return valid JSON inside a code block.",
+        "",
+        "RESPONSE:",
+        "1. Just the JSON in a code block."
+      ],
+      "ReadFileStory": [
+        "You are a creative writer for the RPG system: {systemName}.",
+        "Your task: Write content (Story/Description) for this Journal Entry.",
+        "",
+        "CONTEXT:",
+        "The original data is in the attached file!",
+        "",
+        "MY INSTRUCTION:",
+        "{userPrompt}",
+        "",
+        "RESPONSE RULES:",
+        "1. GOAL: Update the `text.content` field within the `pages`.",
+        "2. USE IDs: Use the `_id` from the file.",
+        "3. FORMAT: Valid JSON partial update (Markdown Code Block)."
+      ],
+      "ReadFileChat": [
+        "You are an expert for Foundry VTT and the game system: {systemName}.",
+        "I have attached a JSON file containing data for \"{docName}\".",
+        "",
+        "QUESTION:",
+        "{userPrompt}"
+      ],
+      "ReadFileImage": [
+        "You are an expert Art Director for the game system: {systemName}.",
+        "Your task: Analyze the attached file and write a 'Copy-Paste' Image Generation Prompt.",
+        "",
+        "USER INSTRUCTION:",
+        "{userPrompt}",
+        "",
+        "OUTPUT:",
+        "Put ONLY the description inside a Markdown Code Block (```text ... ```) at the end."
       ]
     }
   }

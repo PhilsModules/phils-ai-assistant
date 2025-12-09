@@ -1,7 +1,34 @@
 # Changelog
 
+## v1.2.1 - D&D 5e AppV2 & Universal Compatibility
+
+### 🛠 Fixes & Improvements
+* **D&D 5e Compatibility:** Fixed "Brain Button" missing on D&D 5e v4+ character sheets (ApplicationV2 support).
+* **Universal Injector:** Rewrote the button injection logic to be robust across all systems and themes.
+* **Styling:** Fixed button overlap in D&D 5e headers by matching native styling perfectly (via class cloning).
+* **Inventory Items:** Fixed issue where items inside a character's inventory (Owned Items) were not recognized correctly.
+
+
+## v1.2.0 - Safety First & Hybrid Input
+
+### 🚀 New Features
+* **ID Safety Check:**
+  * Prevents accidental data overwrite by verifying that the AI-generated IDs match the target document.
+  * Deep scan of all embedded items and pages.
+* **Hybrid Result Dialog:**
+  * New flexibility: Paste JSON text directly OR upload a JSON file.
+  * Solves the issue where some AIs refuse to generate downloadable files.
+* **UI Polish:**
+  * **Compact Buttons:** Reduced size and padding for a sleeker look.
+  * **Console Banner:** The colorful gradient banner is back!
+
+### ✨ Improvements
+* **Code Cleanliness:** Removed legacy code and optimized internal structure.
+* **Optimized Prompts:** Updated requests to explicitly ask for JSON in Markdown blocks.
+
+
 ## v1.1.1
-* **Bug Fix:** Fixed a critical JSON syntax error in the German translation file (`de.json`). (Thanks for pointing it out @kleelue!)
+* **Bug Fix:** Fixed a critical JSON syntax error in the German translation file (`de.json`). (Thanks for pointing it out @Luette!)
 
 ## v1.1.0 - Diet Mode & Smart UI Update
 

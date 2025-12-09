@@ -40,6 +40,17 @@
       "WorldDefault": {
         "Name": "Standard-KI für neue Spieler",
         "Hint": "Welche KI wird neuen Spielern vorgeschlagen?"
+      },
+      "PromptWarning": {
+        "Name": "Warnung bei langen Prompts",
+        "Hint": "Ab wie vielen Zeichen soll ein Hinweis zum Datei-Download erscheinen?",
+        "Choices": {
+          "0": "Nie (Deaktiviert)",
+          "10000": "Ab 10.000 Zeichen (~2.500 Token)",
+          "25000": "Ab 25.000 Zeichen (~6.000 Token)",
+          "50000": "Ab 50.000 Zeichen (~12.500 Token)",
+          "100000": "Ab 100.000 Zeichen (~25.000 Token)"
+        }
       }
     },
     "UI": {
@@ -56,6 +67,12 @@
       "InfoTextStory": "Schreibt oder erweitert den Inhalt der Journal-Seiten (Story/Plot).",
       "PromptLabel": "Deine Anweisung ({systemName}):",
       "PromptPlaceholder": "Z.B.: Mach den NPC stärker... ODER: Beschreibe das Aussehen wie ein Ölgemälde...",
+      "BtnDownload": "Download (JSON)",
+      "BtnDownloadSmall": "Download",
+      "LargePromptTitle": "Achtung: Große Datenmenge!",
+      "LargePromptBody": "Dein Prompt ist sehr lang ({size} Zeichen). Das Senden großer Datenmengen an die KI kann zu Fehlern führen. Es wird empfohlen, die Daten als JSON-Datei herunterzuladen und manuell in den KI-Chat einzufügen.",
+      "BtnDownloadFile": "Datei herunterladen",
+      "BtnCopyAnyway": "Trotzdem kopieren",
       "BtnCopy": "Kopieren & KI öffnen (dann STRG+V)",
       "PromptCopied": "Kopiert! 👉 Drücke jetzt STRG+V im KI-Chat!",
       "CopyError": "Kopieren fehlgeschlagen.",
@@ -81,6 +98,10 @@
       "WizRoleHint": "Lege fest, wer den Assistenten sehen darf.",
       "WizDefaultLabel": "Empfehlung für Spieler",
       "WizDefaultHint": "Welche KI sollen deine Spieler standardmäßig nutzen?",
+      "WizSubLabel": "Abo-Status (Leistung)",
+      "WizSubHint": "Nutzt du eine bezahlte Version (Plus/Advanced)?",
+      "WizSubFree": "Nein, Kostenlos (Limits aktiv)",
+      "WizSubPro": "Ja, Bezahl-Abo (Maximal)",
       "WizBtnSave": "Los geht's!",
       "WizReady": "Bereit für das Abenteuer!"
     },
@@ -168,6 +189,68 @@
         "",
         "ANTWORT FORMAT:",
         "Gib mir ein valides JSON Update Objekt zurück, das ich direkt über das Original mergen kann."
+      ],
+      "ReadFileUpdate": [
+        "Du bist ein technischer Experte für Foundry VTT und das System: {systemName}.",
+        "Deine Aufgabe: Erstelle ein präzises, PARTIELLES JSON-Update für ein Dokument.",
+        "",
+        "KONTEXT & DATEN:",
+        "Die originalen Daten (JSON) befinden sich in der angehängten Datei!",
+        "",
+        "USER ANWEISUNG:",
+        "{userPrompt}",
+        "",
+        "KRITISCHE SICHERHEITSREGELN (Priorität 1):",
+        "1. ID-SCHUTZ: Wenn du ein Objekt in einem Array (z.B. 'pages', 'items', 'effects') änderst, MUSST du zwingend die `_id` dieses Objekts beibehalten. Ohne `_id` erstellt Foundry ein Duplikat!",
+        "2. STRUKTUR: Gib nur die Pfade zurück, die sich ändern. Behalte die Verschachtelung bei.",
+        "3. LÖSCH-SCHUTZ: Gib niemals leere Strings für Felder zurück, die im Original Daten enthielten, es sei denn, du wurdest explizit gebeten, sie zu löschen.",
+        "4. NEUE DATEN: Wenn du Text generierst, füge ihn in das entsprechende Feld ein (z.B. system.description.value).",
+        "",
+        "ANTWORT FORMAT:",
+        "1. Denke kurz nach: Welche IDs muss ich bewahren?",
+        "2. Das JSON Ergebnis in einem Markdown Block.",
+        "3. Kurze Bestätigung auf Deutsch."
+      ],
+      "ReadFileStory": [
+        "Du bist ein kreativer Autor und HTML-Coder für Foundry VTT ({systemName}).",
+        "Aufgabe: Generiere oder erweitere den Inhalt (`text.content`) einer Journal Page.",
+        "",
+        "KONTEXT & DATEN:",
+        "Die originalen Daten (JSON) befinden sich in der angehängten Datei!",
+        "",
+        "USER ANWEISUNG:",
+        "{userPrompt}",
+        "",
+        "TECHNISCHE REGELN FÜR HTML IN JSON:",
+        "1. Du schreibst HTML Code (h1, p, ul, strong, em).",
+        "2. WICHTIG - ESCAPING: Da du JSON ausgibst, musst du doppelte Anführungszeichen innerhalb des HTML-Strings mit einem Backslash maskieren (z.B. <h1 class=\\\"title\\\">).",
+        "3. SEITEN-LOGIK: Wenn `pages` existieren, nutze ihre `_id`.",
+        "",
+        "ANTWORT FORMAT:",
+        "Gib mir ein valides JSON Update Objekt zurück (Markdown Block), das ich direkt über das Original mergen kann."
+      ],
+      "ReadFileChat": [
+        "Du bist ein weiser Mentor und Regel-Experte für das Spielsystem: {systemName}.",
+        "Kontext: Ich habe dir die Daten für \"{docName}\" als Datei angehängt.",
+        "",
+        "FRAGE:",
+        "{userPrompt}",
+        "",
+        "ANTWORT-RICHTLINIEN:",
+        "1. Beziehe dich auf konkrete Daten/Werte aus der Datei.",
+        "2. Bleibe im Tonfall des Spielsystems.",
+        "3. Antworte immer auf Deutsch."
+      ],
+      "ReadFileImage": [
+        "Du bist ein professioneller Art Director für: {systemName}.",
+        "Aufgabe: Erstelle einen englischen Text-Prompt für eine Bild-KI.",
+        "Quelle: Die Daten befinden sich in der angehängten Datei.",
+        "",
+        "USER WUNSCH:",
+        "{userPrompt}",
+        "",
+        "OUTPUT:",
+        "Platziere NUR den englischen Prompt in einem Code-Block (```text ... ```) am Ende."
       ]
     }
   }

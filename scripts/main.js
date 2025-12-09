@@ -1,6 +1,6 @@
 const MODULE_ID = 'phils-ai-assistant';
 
-// --- THEME DEFINITIONEN ---
+
 const THEMES = {
     gemini: {
         label: "Google Gemini", url: "https://gemini.google.com/app",
@@ -130,7 +130,7 @@ const THEMES = {
     }
 };
 
-// --- STYLE MANAGER ---
+
 function applyGlobalTheme(overrideProvider, overrideTheme) {
     const savedProvider = game.settings.get(MODULE_ID, 'aiProvider') || 'gemini';
     const savedTheme = game.settings.get(MODULE_ID, 'aiTheme') || 'auto';
@@ -156,7 +156,7 @@ function applyGlobalTheme(overrideProvider, overrideTheme) {
     }
 }
 
-// --- HELPER FUNCTIONS ---
+
 function formatString(str, data = {}) {
     if (!str) return "";
     if (Array.isArray(str)) str = str.join("\n");
@@ -183,7 +183,7 @@ function resolvePrompt(key, data) {
     return formatString(rawText, data);
 }
 
-// --- INIT & SETTINGS ---
+
 Hooks.once('init', async () => {
     game.settings.register(MODULE_ID, 'firstRunConfigured', { scope: 'client', config: false, type: Boolean, default: false });
     game.settings.register(MODULE_ID, 'worldDefaultProvider', {
@@ -210,6 +210,10 @@ Hooks.once('init', async () => {
     game.settings.register(MODULE_ID, 'playerCanUpdateActor', { name: "AIASSISTANT.Settings.PlayerUpdateActor.Name", hint: "AIASSISTANT.Settings.PlayerUpdateActor.Hint", scope: 'world', config: true, type: Boolean, default: false });
     game.settings.register(MODULE_ID, 'playerCanUpdateItem', { name: "AIASSISTANT.Settings.PlayerUpdateItem.Name", hint: "AIASSISTANT.Settings.PlayerUpdateItem.Hint", scope: 'world', config: true, type: Boolean, default: false });
     game.settings.register(MODULE_ID, 'playerCanUpdateJournal', { name: "AIASSISTANT.Settings.PlayerUpdateJournal.Name", hint: "AIASSISTANT.Settings.PlayerUpdateJournal.Hint", scope: 'world', config: true, type: Boolean, default: false });
+    game.settings.register(MODULE_ID, 'promptWarningLimit', {
+        name: "AIASSISTANT.Settings.PromptWarning.Name", hint: "AIASSISTANT.Settings.PromptWarning.Hint", scope: 'client', config: true, type: Number, default: 25000,
+        choices: { 0: "AIASSISTANT.Settings.PromptWarning.Choices.0", 10000: "AIASSISTANT.Settings.PromptWarning.Choices.10000", 25000: "AIASSISTANT.Settings.PromptWarning.Choices.25000", 50000: "AIASSISTANT.Settings.PromptWarning.Choices.50000", 100000: "AIASSISTANT.Settings.PromptWarning.Choices.100000" }
+    });
 });
 
 Hooks.once('ready', async () => {
@@ -226,10 +230,219 @@ Hooks.once('ready', async () => {
     console.log(`%c PHILS AI ASSISTANT %c ${providerData.label} `, bgStyle, badgeStyle);
 
     if (!game.settings.get(MODULE_ID, 'firstRunConfigured')) showWelcomeWizard();
+
+    if (!game.settings.get(MODULE_ID, 'firstRunConfigured')) showWelcomeWizard();
+
+    // --- Universal Injection System ---
+    const injector = new UniversalButtonInjector();
+    injector.start();
 });
 
-// --- HOOKS ---
+
+class UniversalButtonInjector {
+    constructor() {
+        this.observer = null;
+        this.injectedApps = new WeakSet();
+    }
+
+    start() {
+        console.log("AI Assistant | Injector System V2 Started");
+
+        // 1. Hook into specific sheets
+        const hookHandler = (app, html, data) => {
+            this.attemptInjection(app, html);
+        };
+
+        Hooks.on('renderApplication', hookHandler);
+        Hooks.on('renderActorSheet', hookHandler);
+        Hooks.on('renderItemSheet', hookHandler);
+        Hooks.on('renderJournalSheet', hookHandler);
+
+        // 2. Observer for AppV2 / ShadowDOM / Delayed Rendering
+        this.observer = new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+                for (const node of mutation.addedNodes) {
+                    if (node.nodeType === 1) { // Element
+                        // Check if this new node is a window or contains a window
+                        if (node.classList.contains('window-app') || node.tagName === 'FVTT-APPLICATION' || node.classList.contains('application')) {
+                            this.inspectNode(node);
+                        } else {
+                            // Deep scan for nested windows
+                            const windows = node.querySelectorAll?.('.window-app, fvtt-application, .application');
+                            if (windows?.length) windows.forEach(w => this.inspectNode(w));
+                        }
+                    }
+                }
+            }
+        });
+        this.observer.observe(document.body, { childList: true, subtree: true });
+    }
+
+    inspectNode(node) {
+        // 1. Try direct lookup (standard apps)
+        const numericId = parseInt(node.id.split('-').pop());
+        if (!isNaN(numericId) && ui.windows[numericId]) {
+            this.attemptInjection(ui.windows[numericId], $(node));
+            return;
+        }
+
+        // 2. Search by Element or ID in ui.windows
+        const windows = Object.values(ui.windows);
+        let app = windows.find(w => w.element && w.element[0] === node);
+
+        if (!app) {
+            // 3. Search by ID match
+            app = windows.find(w => w.id === node.id);
+        }
+
+        if (app) {
+            this.attemptInjection(app, $(node));
+            return;
+        }
+
+        // 4. FALLBACK: Synthetic App for AppV2 / Unique Sheets NOT in ui.windows
+        let doc = null; // Initialize doc here to be accessible across patterns
+
+        // A. Owned Item Pattern (Actor-ID-Item-ID)
+        // Format: ItemSheet5e-Actor-3TOkBe3TyIaIK5t1-Item-rNDleUFJIu09mbl3
+        const ownedItemMatch = node.id.match(/Actor-([a-zA-Z0-9]{16})-Item-([a-zA-Z0-9]{16})/);
+        if (ownedItemMatch) {
+            const actorId = ownedItemMatch[1];
+            const itemId = ownedItemMatch[2];
+            const actor = game.actors.get(actorId);
+            if (actor) {
+                doc = actor.items.get(itemId);
+            }
+        }
+
+        // B. Generic ID Pattern (World Actor/Item/Journal)
+        let potentialId = null; // Declare potentialId here
+        if (!doc) {
+            // ID Format often: "CharacterActorSheet-Actor-3TOkBe3TyIaIK5t1"
+            const parts = node.id.split('-');
+            potentialId = parts.pop(); // Last part
+
+            // Try finding document
+            doc = game.actors.get(potentialId) || game.items.get(potentialId) || game.journal.get(potentialId);
+
+            // Sometimes ID is second to last if there is a suffix? (Unlikely but possible)
+            if (!doc && parts.length > 0) {
+                const alternativeId = parts.pop();
+                doc = game.actors.get(alternativeId) || game.items.get(alternativeId) || game.journal.get(alternativeId);
+            }
+        }
+
+        if (doc) {
+            const syntheticApp = {
+                id: node.id,
+                document: doc,
+                element: $(node),
+                constructor: { name: "Syntheticv2App: " + node.classList[0] }
+            };
+            this.attemptInjection(syntheticApp, $(node));
+            return;
+        }
+    }
+
+    attemptInjection(app, html) {
+        if (!app) return;
+
+        // Check for document presence immediately
+        if (!app.document && !app.object) {
+            return;
+        }
+
+        // Support both .document (Data) and .object (Legacy/Base)
+        const doc = app.document || app.object;
+
+        if (this.injectedApps.has(app)) {
+            return;
+        }
+
+        const docName = doc.documentName || doc.type; // Fallback for some objects
+
+        // Filter: Only Actors, Items, Journals
+        if (!["Actor", "Item", "JournalEntry"].includes(docName)) {
+            return;
+        }
+
+        // Check Permissions
+        const minRole = game.settings.get(MODULE_ID, 'minimumRole');
+        if (game.user.role < minRole) {
+            return;
+        }
+
+        // Find insertion point - Logic Update for D&D 5e v4
+        const $window = html.closest ? html.closest('.window-app') : $(html).parents('.window-app');
+        const $target = $window.length ? $window : $(html);
+
+        // Strategy A: Standard matches
+        let header = $target.find('.window-header').first();
+        let controls = $target.find('.window-controls').first();
+
+        // Strategy C: Inner Header for D&D 5e / Custom Sheets
+        if (!header.length && !controls.length) {
+            header = $target.find('.window-content .window-header').first();
+        }
+
+        let container = null;
+        if (header.length) container = header;
+        else if (controls.length) container = controls;
+
+        if (container && container.length > 0) {
+            if (container.find('.ai-assistant-btn').length === 0) {
+                this.injectButton(app, container);
+            }
+        } else {
+            // Fallback D: Title Bar / Fallback Prepend
+            const titleBar = $target.find('.window-title').parent();
+            if (titleBar.length > 0 && titleBar.find('.ai-assistant-btn').length === 0) {
+                this.injectButton(app, titleBar);
+            } else {
+                // Last Resort: Log failure to help debug D&D 5e
+                console.warn(`AI Assistant | FAIL: Could not find header/controls for ${app.constructor.name} (AppId: ${app.id}, Classes: ${$target.attr('class')})`);
+            }
+        }
+    }
+
+    injectButton(app, container) {
+        // PREPARE: Find a sibling to clone classes from for perfect alignment
+        const closeBtn = container.find('.close, .header-button.close').first();
+        let btnClasses = "header-button control ai-assistant-btn"; // Default fallback
+
+        if (closeBtn.length) {
+            // Clone classes but remove 'close' specific ones and ensure our identifier is there
+            const siblingClasses = closeBtn.attr('class') || "";
+            btnClasses = siblingClasses.replace('close', '').trim() + " ai-assistant-btn";
+        }
+
+        // Build Button (Icon Only, Cloned Classes)
+        // We still keep the margin-right to prevent overlap
+        const btn = $(`<a class="${btnClasses}" title="AI Assistant" style="margin-right: 6px;">
+            <i class="fas fa-brain"></i>
+        </a>`);
+
+        // Attach Click
+        btn.click((ev) => {
+            ev.preventDefault();
+            ev.stopPropagation(); // Vital for some drag/drop sheets
+            startGeminiDialog(app.document);
+        });
+
+        if (closeBtn.length > 0) {
+            closeBtn.before(btn);
+        } else {
+            // Or just prepend to controls if no close button found there
+            container.prepend(btn);
+        }
+
+        this.injectedApps.add(app);
+    }
+}
+
+
 Hooks.on('renderActorSheet', (app, html, data) => {
+
     const isGM = game.user.isGM;
     const canEditItems = isGM || game.settings.get(MODULE_ID, 'playerCanUpdateItem');
     if (!canEditItems) return;
@@ -281,7 +494,7 @@ function addButtonToArray(sheet, buttons) {
     buttons.unshift({ label: "AI Assistant", class: "ai-assistant-btn", icon: "fas fa-brain", onclick: () => startGeminiDialog(sheet.document) });
 }
 
-// --- WIZARD ---
+
 function showWelcomeWizard() {
     applyGlobalTheme();
     const isGM = game.user.isGM;
@@ -320,6 +533,14 @@ function showWelcomeWizard() {
                 <option value="auto" selected>Automatisch</option>
                 <option value="de">Deutsch</option>
                 <option value="en">English</option>
+            </select>
+        </div>
+        <div class="wizard-section">
+            <label class="wizard-label"><i class="fas fa-crown"></i> ${loc('WizSubLabel')}</label>
+            <div class="wizard-hint">${loc('WizSubHint')}</div>
+            <select id="wiz-sub-status" class="wizard-select">
+                <option value="free" selected>${loc('WizSubFree')}</option>
+                <option value="pro">${loc('WizSubPro')}</option>
             </select>
         </div>
     `;
@@ -379,9 +600,17 @@ function showWelcomeWizard() {
                         const provider = html.find('#wiz-provider').val();
                         const theme = html.find('#wiz-theme').val();
                         const lang = html.find('#wiz-lang').val();
+                        const subStatus = html.find('#wiz-sub-status').val();
+
                         await game.settings.set(MODULE_ID, 'aiProvider', provider);
                         await game.settings.set(MODULE_ID, 'aiTheme', theme);
                         await game.settings.set(MODULE_ID, 'languageOverride', lang);
+
+                        if (subStatus === 'pro') {
+                            await game.settings.set(MODULE_ID, 'promptWarningLimit', 100000);
+                        } else {
+                            await game.settings.set(MODULE_ID, 'promptWarningLimit', 25000);
+                        }
 
                         if (isGM) {
                             const system = html.find('#wiz-system').val();
@@ -418,10 +647,7 @@ function showWelcomeWizard() {
     }, { width: 500, height: "auto" }).render(true);
 }
 
-// --- GLOSSARY & PAGE UTILS ---
 
-
-// --- DIALOG & LOGIC ---
 function startGeminiDialog(doc, specialContext = null) {
     const systemName = game.settings.get(MODULE_ID, 'gameSystem');
     const isGM = game.user.isGM;
@@ -521,25 +747,34 @@ function startGeminiDialog(doc, specialContext = null) {
                     const sendFull = html.find('input[name="sendFull"]').is(':checked');
 
                     let selectedPageIds = null;
-
-
                     if (isJournal) {
                         const checkboxes = html.find('.page-selector:checked');
                         if (checkboxes.length > 0) {
                             selectedPageIds = [];
                             checkboxes.each((i, el) => selectedPageIds.push($(el).val()));
                         }
-
                     }
 
-                    let finalUserPrompt = prompt;
+                    handlePromptExecution(doc, prompt, mode, sendFull, false, selectedPageIds, specialContext);
+                }
+            },
+            download: {
+                label: loc('BtnDownload'), icon: '<i class="fas fa-file-download"></i>',
+                callback: (html) => {
+                    const prompt = html.find('[name="prompt"]').val();
+                    const mode = html.find('input[name="mode"]:checked').val();
+                    const sendFull = html.find('input[name="sendFull"]').is(':checked');
 
+                    let selectedPageIds = null;
+                    if (isJournal) {
+                        const checkboxes = html.find('.page-selector:checked');
+                        if (checkboxes.length > 0) {
+                            selectedPageIds = [];
+                            checkboxes.each((i, el) => selectedPageIds.push($(el).val()));
+                        }
+                    }
 
-                    if (mode === 'chat') prepareQuestionPrompt(doc, finalUserPrompt, systemName, sendFull, url, selectedPageIds, specialContext);
-                    else if (mode === 'image') prepareImagePrompt(doc, finalUserPrompt, systemName, sendFull, url, selectedPageIds, specialContext);
-                    else if (mode === 'update') prepareFullDataPrompt(doc, finalUserPrompt, systemName, sendFull, url, selectedPageIds);
-                    else if (mode === 'story') prepareStoryPrompt(doc, finalUserPrompt, systemName, sendFull, url, selectedPageIds);
-
+                    handlePromptExecution(doc, prompt, mode, sendFull, true, selectedPageIds, specialContext);
                 }
             }
         }, default: "go",
@@ -547,6 +782,7 @@ function startGeminiDialog(doc, specialContext = null) {
             html.closest('.app').css('height', 'auto');
             html.closest('.window-app').addClass('ai-assistant-window');
             html.find('.dialog-button.default').addClass('gemini-main-button');
+            html.find('.dialog-button.download').addClass('gemini-secondary-button');
 
             html.find('#page-list-header').click(() => {
                 html.find('#page-list-content').slideToggle(200);
@@ -569,16 +805,13 @@ function startGeminiDialog(doc, specialContext = null) {
                 const sendFullCheckbox = html.find('#send-full');
 
                 // Auto-toggle Send Full Data based on mode
-                // Only do this on mode change, or if we want to enforce defaults on init
-                // User requirement: "startet in dietmodus [chat/image], bei werte anpassen [update] soll dann mehr kontext an sein"
-                if (!isInit) { // Only auto-switch when user actively changes mode to avoid overriding manual initial settings if we ever have them
+                if (!isInit) {
                     if (mode === 'chat' || mode === 'image' || mode === 'story') {
                         sendFullCheckbox.prop('checked', false);
                     } else if (mode === 'update') {
                         sendFullCheckbox.prop('checked', true);
                     }
                 } else {
-                    // Initial state logic (optional, but good for consistency)
                     if (mode === 'chat' || mode === 'image' || mode === 'story') {
                         sendFullCheckbox.prop('checked', false);
                     } else if (mode === 'update') {
@@ -586,7 +819,6 @@ function startGeminiDialog(doc, specialContext = null) {
                     }
                 }
 
-                // Wir zeigen die Seitenauswahl nun IMMER bei Journalen, damit man auch für Fragen/Bilder filtern kann.
                 if (isJournal) {
                     pageWrapper.slideDown(200);
                 } else {
@@ -609,6 +841,147 @@ function startGeminiDialog(doc, specialContext = null) {
         }
     });
     dialog.render(true);
+}
+
+
+
+async function handlePromptExecution(doc, userPrompt, mode, sendFull, isDownload, selectedPageIds, specialContext) {
+    const systemName = game.settings.get(MODULE_ID, 'gameSystem');
+    const providerKey = game.settings.get(MODULE_ID, 'aiProvider') || 'gemini';
+    const url = THEMES[providerKey].url;
+
+
+    let fullPrompt = "";
+    if (mode === 'chat') fullPrompt = await prepareQuestionPromptText(doc, userPrompt, systemName, sendFull, selectedPageIds, specialContext);
+    else if (mode === 'image') fullPrompt = await prepareImagePromptText(doc, userPrompt, systemName, sendFull, selectedPageIds, specialContext);
+    else if (mode === 'update') fullPrompt = await prepareFullDataPromptText(doc, userPrompt, systemName, sendFull, selectedPageIds);
+    else if (mode === 'story') fullPrompt = await prepareStoryPromptText(doc, userPrompt, systemName, sendFull, selectedPageIds);
+
+    if (!fullPrompt) return; // Error handled inside prepare steps if needed
+
+
+    const limit = game.settings.get(MODULE_ID, 'promptWarningLimit');
+    const isOverLimit = (limit > 0 && fullPrompt.length > limit);
+
+    if (isDownload) {
+        // Direct Download requested
+        await executeDownloadFlow(doc, fullPrompt, userPrompt, systemName, url, mode, specialContext);
+    } else if (isOverLimit) {
+        // Warning Dialog
+        showLargePromptDialog(doc, fullPrompt, userPrompt, systemName, url, mode, specialContext);
+    } else {
+        // Standard Copy
+        copyAndOpen(fullPrompt, doc, (mode === 'update'), url);
+    }
+}
+
+function showLargePromptDialog(doc, fullPrompt, userPrompt, systemName, url, mode, specialContext) {
+    const size = new Intl.NumberFormat().format(fullPrompt.length);
+    const content = `
+    <div class="ai-assistant-content">
+        <h3 style="border-bottom:1px solid var(--ai-border-color); margin-bottom:10px;"><i class="fas fa-exclamation-triangle" style="color:#FFA500;"></i> ${loc('LargePromptTitle')}</h3>
+        <p>${loc('LargePromptBody', { size: size })}</p>
+        <div style="margin-top:20px; display:flex; gap:10px; justify-content:center;">
+             <button class="gemini-main-button" id="btn-dl-file"><i class="fas fa-file-download"></i> ${loc('BtnDownloadFile')}</button>
+             <button class="gemini-secondary-button" id="btn-copy-any"><i class="fas fa-copy"></i> ${loc('BtnCopyAnyway')}</button>
+        </div>
+    </div>`;
+
+    new Dialog({
+        title: loc('LargePromptTitle'), content: content,
+        buttons: {},
+        render: (html) => {
+            html.closest('.window-app').addClass('ai-assistant-window');
+            html.find('#btn-dl-file').click(async () => {
+                html.closest('.app').find('.close').click(); // Close dialog
+                await executeDownloadFlow(doc, fullPrompt, userPrompt, systemName, url, mode, specialContext);
+            });
+            html.find('#btn-copy-any').click(async () => {
+                html.closest('.app').find('.close').click();
+                copyAndOpen(fullPrompt, doc, true, url);
+            });
+        }
+    }, { width: 400 }).render(true);
+}
+
+async function executeDownloadFlow(doc, fullDataContent, userPrompt, systemName, url, mode, specialContext) {
+
+    const name = doc.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    const filename = `${name}_ai_data.json`;
+
+    const blob = new Blob([fullDataContent], { type: "text/plain;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+
+
+    let promptKey = "ReadFileChat";
+    if (mode === 'update') promptKey = "ReadFileUpdate";
+    else if (mode === 'story') promptKey = "ReadFileStory";
+    else if (mode === 'image') promptKey = "ReadFileImage";
+
+    let docName = doc.name;
+    if (specialContext) docName = `${docName} (${specialContext.name})`;
+
+    const readPrompt = resolvePrompt(promptKey, { systemName, docName: docName, userPrompt });
+
+
+
+    if (mode === 'update' || mode === 'story') {
+        await navigator.clipboard.writeText(readPrompt);
+        ui.notifications.info(loc('PromptCopied'));
+        window.open(url, "_blank");
+
+        showResultDialog(doc);
+    } else {
+        copyAndOpen(readPrompt, doc, false, url);
+    }
+}
+
+
+
+async function prepareFullDataPromptText(doc, userPrompt, systemName, sendFull, selectedPages = null) {
+    const cleanData = getCleanData(doc, sendFull, selectedPages);
+    const jsonString = sendFull ? JSON.stringify(cleanData, null, 2) : JSON.stringify(cleanData);
+    return resolvePrompt("UpdateItem", { systemName, jsonString, userPrompt });
+}
+
+async function prepareStoryPromptText(doc, userPrompt, systemName, sendFull, selectedPages = null) {
+    const cleanData = getCleanData(doc, sendFull, selectedPages);
+    const jsonString = sendFull ? JSON.stringify(cleanData, null, 2) : JSON.stringify(cleanData);
+    return resolvePrompt("WriteStory", { systemName, jsonString, userPrompt });
+}
+
+async function prepareQuestionPromptText(doc, userPrompt, systemName, sendFull, selectedPages = null, specialContext = null) {
+    const cleanDataForLogic = getCleanData(doc, sendFull, selectedPages);
+    let descText = getContextDescription(doc, cleanDataForLogic);
+
+    if (specialContext && specialContext.type === 'skill') {
+        const headerInfo = `\n> **FOKUS AUF SKILL: ${specialContext.name}**\n> Aktueller Wert: ${specialContext.data?.totalModifier || "Unbekannt"}\n\n`;
+        descText = headerInfo + descText;
+    }
+
+    const jsonString = sendFull ? JSON.stringify(cleanDataForLogic, null, 2) : JSON.stringify(cleanDataForLogic);
+    const fullContext = `# ${cleanDataForLogic.name || "Character"}\n\n## DESCRIPTION\n${descText}\n\n## DATA (JSON)\n\`\`\`json\n${jsonString}\n\`\`\``;
+
+    let docName = cleanDataForLogic.name;
+    if (specialContext) docName = `${docName} (${specialContext.name})`;
+
+    return resolvePrompt("ChatQuestion", { systemName, docName: docName, docDesc: fullContext, userPrompt });
+}
+
+async function prepareImagePromptText(doc, userPrompt, systemName, sendFull, selectedPages = null, specialContext = null) {
+    const cleanDataForLogic = getCleanData(doc, sendFull, selectedPages);
+    const descText = getContextDescription(doc, cleanDataForLogic);
+    const jsonString = sendFull ? JSON.stringify(cleanDataForLogic, null, 2) : JSON.stringify(cleanDataForLogic); // JSON String for Prompt
+
+    const fullContext = `# ${cleanDataForLogic.name || "Character"}\n\n## VISUAL DESCRIPTION / BIO\n${descText}\n\n## CHARACTER DATA (JSON)\n\`\`\`json\n${jsonString}\n\`\`\``;
+
+    let docName = cleanDataForLogic.name;
+    if (specialContext) docName = `${docName} (${specialContext.name})`;
+
+    return resolvePrompt("GenerateImage", { systemName, docName: docName, docDesc: fullContext, userPrompt });
 }
 
 function showResultDialog(doc, initialContent = "", errorMsg = null) {
@@ -634,7 +1007,16 @@ function showResultDialog(doc, initialContent = "", errorMsg = null) {
             </div>
         </div>
         ${errorHTML}
+        <!-- Hybrid Input: Text Area for Paste -->
         <textarea name="aiResponse" style="width:100%; height: 300px; font-size: 0.8em;" placeholder='{"name": "..."}'>${initialContent}</textarea>
+        
+        <!-- Alternative: Upload JSON File -->
+        <div style="margin-top:5px; border-top:1px solid var(--ai-border-color); padding-top:5px;">
+             <input type="file" id="ai-file-upload-alt" accept=".json" style="display:none;" />
+             <a id="btn-trigger-upload-alt" style="font-size:0.85em; text-decoration:underline; cursor:pointer; opacity:0.7;">
+                <i class="fas fa-file-upload"></i> Alternativ: JSON-Datei hochladen (Import)
+             </a>
+        </div>
     </div>`;
 
     new Dialog({
@@ -672,16 +1054,34 @@ function showResultDialog(doc, initialContent = "", errorMsg = null) {
                 navigator.clipboard.writeText("Ich habe diesen Fehler erhalten: " + errText + ". Bitte korrigiere das JSON.");
                 ui.notifications.info("Fehlermeldung kopiert!");
             });
+
+            // File Upload Logic (Alternative)
+            const fileInput = html.find('#ai-file-upload-alt');
+            html.find('#btn-trigger-upload-alt').click(() => fileInput.click());
+            fileInput.change(async (ev) => {
+                const file = ev.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const text = e.target.result;
+                    // Populate textarea so user can see/edit before applying, or apply immediately? 
+                    // Better to populate textarea to be safe and consistent.
+                    html.find('[name="aiResponse"]').val(text);
+                    ui.notifications.info("Datei geladen! Klicke auf 'Änderungen anwenden'.");
+                };
+                reader.readAsText(file);
+            });
+
             setTimeout(() => { html.closest('.window-app').css("width", "500px"); html.closest('.window-app').css("height", "auto"); }, 50);
         }
     }, { width: 500, height: "auto" }).render(true);
 }
 
-// --- DATA PROCESSING & PROMPTS ---
+
 function getCleanData(doc, sendFull, allowedPageIds = null) {
     const rawData = doc.toObject();
 
-    // 1. GLOBAL CLEANUP (Always remove these, they are irrelevant for AI)
+
     delete rawData._stats;
     delete rawData.ownership;
     delete rawData.flags;
@@ -768,61 +1168,7 @@ function getContextDescription(doc, rawData) {
     return clean ? clean.substring(0, 8000) : "(No description found)";
 }
 
-async function prepareFullDataPrompt(doc, userPrompt, systemName, sendFull, targetUrl, selectedPages = null) {
-    const cleanData = getCleanData(doc, sendFull, selectedPages);
-    const jsonString = sendFull ? JSON.stringify(cleanData, null, 2) : JSON.stringify(cleanData);
-    const finalPrompt = resolvePrompt("UpdateItem", { systemName, jsonString, userPrompt });
-    copyAndOpen(finalPrompt, doc, true, targetUrl);
-}
 
-async function prepareStoryPrompt(doc, userPrompt, systemName, sendFull, targetUrl, selectedPages = null) {
-    const cleanData = getCleanData(doc, sendFull, selectedPages);
-    const jsonString = sendFull ? JSON.stringify(cleanData, null, 2) : JSON.stringify(cleanData);
-    const finalPrompt = resolvePrompt("WriteStory", { systemName, jsonString, userPrompt });
-    copyAndOpen(finalPrompt, doc, true, targetUrl);
-}
-
-
-
-async function prepareQuestionPrompt(doc, userPrompt, systemName, sendFull, targetUrl, selectedPages = null, specialContext = null) {
-    const cleanDataForLogic = getCleanData(doc, sendFull, selectedPages);
-    let descText = getContextDescription(doc, cleanDataForLogic);
-    let headerInfo = "";
-
-    if (specialContext && specialContext.type === 'skill') {
-        const skillName = specialContext.name;
-        const skillData = specialContext.data;
-        const skillVal = skillData?.totalModifier || skillData?.value || "Unbekannt";
-        const skillRank = skillData?.rank ? `(Rank: ${skillData.rank})` : "";
-        headerInfo = `\n> **FOKUS AUF SKILL: ${skillName}**\n> Aktueller Wert: ${skillVal} ${skillRank}\n> Bitte beantworte die Frage spezifisch zu diesem Skill.\n\n`;
-        descText = headerInfo + descText;
-    }
-
-    const jsonString = sendFull ? JSON.stringify(cleanDataForLogic, null, 2) : JSON.stringify(cleanDataForLogic);
-    // Markdown formatting for the clipboard content
-    const fullContext = `# ${cleanDataForLogic.name || "Character"}\n\n## DESCRIPTION\n${descText}\n\n## DATA (JSON)\n\`\`\`json\n${jsonString}\n\`\`\``;
-
-    let docName = cleanDataForLogic.name;
-    if (specialContext) docName = `${docName} (${specialContext.name})`;
-
-    const finalPrompt = resolvePrompt("ChatQuestion", { systemName, docName: docName, docDesc: fullContext, userPrompt });
-    copyAndOpen(finalPrompt, doc, false, targetUrl);
-}
-
-async function prepareImagePrompt(doc, userPrompt, systemName, sendFull, targetUrl, selectedPages = null, specialContext = null) {
-    const cleanDataForLogic = getCleanData(doc, sendFull, selectedPages);
-    const descText = getContextDescription(doc, cleanDataForLogic);
-    const jsonString = sendFull ? JSON.stringify(cleanDataForLogic, null, 2) : JSON.stringify(cleanDataForLogic);
-
-    // Markdown formatting
-    const fullContext = `# ${cleanDataForLogic.name || "Character"}\n\n## VISUAL DESCRIPTION / BIO\n${descText}\n\n## CHARACTER DATA (JSON)\n\`\`\`json\n${jsonString}\n\`\`\``;
-
-    let docName = cleanDataForLogic.name;
-    if (specialContext) docName = `${docName} (${specialContext.name})`;
-
-    const finalPrompt = resolvePrompt("GenerateImage", { systemName, docName: docName, docDesc: fullContext, userPrompt });
-    copyAndOpen(finalPrompt, doc, false, targetUrl);
-}
 
 async function copyAndOpen(text, doc, isUpdateMode, targetUrl) {
     if (!text) { ui.notifications.error("Error: Empty Prompt"); return; }
@@ -852,6 +1198,26 @@ async function processUpdate(doc, rawText) {
 
     try {
         const jsonData = JSON.parse(cleanJson);
+
+
+        if (jsonData._id && jsonData._id !== doc.id) {
+            const msg = `ID Check Failed: Root ID '${jsonData._id}' does not match Document '${doc.id}'`;
+            console.warn(msg);
+            return msg;
+        }
+
+        const validIds = collectAllIds(doc.toObject());
+        validIds.add(doc.id);
+
+        const validationErrors = validateDeepIds(jsonData, validIds);
+        if (validationErrors.length > 0) {
+            const errorMsg = "ID Verification Failed:\n" + validationErrors.join("\n");
+            console.warn(errorMsg);
+            ui.notifications.error("Update rejected due to ID errors. See console.");
+            return errorMsg;
+        }
+
+
         delete jsonData._id;
 
         if (doc.documentName === "JournalEntry" && jsonData.pages) {
@@ -863,11 +1229,14 @@ async function processUpdate(doc, rawText) {
             }
         }
 
-
-
         if ((doc.documentName === "Actor" || doc.documentName === "Item") && jsonData.items && Array.isArray(jsonData.items)) {
             jsonData.items = jsonData.items.map(newItem => {
-                if (!newItem._id && doc.items) { console.warn(`AI Assistant | Safety: Item without ID skipped.`); return null; }
+                // Double check (redundant but safe)
+                if (newItem._id && !validIds.has(newItem._id)) {
+                    console.warn(`AI Assistant | Safety: Skipped item with unknown ID: ${newItem._id}`);
+                    return null;
+                }
+
                 if (doc.items) {
                     const original = doc.items.get(newItem._id);
                     if (original && (newItem.system?.description?.value === "" || newItem.system?.description?.value === null)) {
@@ -885,4 +1254,47 @@ async function processUpdate(doc, rawText) {
         console.error("AI Assistant | Update Error:", err);
         return err.message;
     }
+}
+
+
+function collectAllIds(obj, ids = new Set()) {
+    if (!obj || typeof obj !== 'object') return ids;
+
+    if (Array.isArray(obj)) {
+        obj.forEach(item => collectAllIds(item, ids));
+    } else {
+        if (obj._id) ids.add(obj._id);
+        if (obj.id) ids.add(obj.id);
+
+        for (const key in obj) {
+            if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                collectAllIds(obj[key], ids);
+            }
+        }
+    }
+    return ids;
+}
+
+function validateDeepIds(json, validIds, errors = [], path = "") {
+    if (!json || typeof json !== 'object') return errors;
+
+    if (Array.isArray(json)) {
+        json.forEach((item, index) => validateDeepIds(item, validIds, errors, `${path}[${index}]`));
+    } else {
+        // Check _id
+        if (json._id && !validIds.has(json._id)) {
+            errors.push(`Unknown ID found at ${path}._id: '${json._id}'`);
+        }
+        // Check id
+        if (json.id && typeof json.id === 'string' && !validIds.has(json.id)) {
+            if (json.id.length === 16) errors.push(`Unknown ID found at ${path}.id: '${json.id}'`);
+        }
+
+        for (const key in json) {
+            if (Object.prototype.hasOwnProperty.call(json, key)) {
+                validateDeepIds(json[key], validIds, errors, path ? `${path}.${key}` : key);
+            }
+        }
+    }
+    return errors;
 }
