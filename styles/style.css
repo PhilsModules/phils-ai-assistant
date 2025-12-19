@@ -19,18 +19,24 @@
 }
 
 /* --- HAUPTFENSTER --- */
-.ai-assistant-window.window-app {
+
+/* Theme Logic:
+   - Dark Themes (Gemini, etc) override backgrounds via ID selector.
+   - Light Themes (Foundry) leave background transparent for global theme handling.
+*/
+body:not(.ai-theme-light) #ai-assistant-app.window-app,
+body:not(.ai-theme-light) #ai-assistant-app .window-content {
     background: var(--ai-bg) !important;
     color: var(--ai-text) !important;
-    border: 1px solid var(--ai-border-color) !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
     font-family: var(--ai-font) !important;
-    backdrop-filter: var(--ai-backdrop);
 }
 
-body.ai-theme-light .ai-assistant-window.window-app {
+/* For Light theme, we just enforce font/color but leave BG to external theme */
+body.ai-theme-light #ai-assistant-app.window-app {
+    color: var(--ai-text) !important;
+    font-family: var(--ai-font) !important;
+    /* Optional: Reapply border if needed for contrast */
     border: 2px solid #5e5c56 !important;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3) !important;
 }
 
 .ai-assistant-window .window-header {
@@ -48,8 +54,7 @@ body.ai-theme-light .ai-assistant-window.window-app {
 }
 
 .ai-assistant-window .window-content {
-    background: transparent !important;
-    color: var(--ai-text) !important;
+    /* Base content styling */
     padding: 10px !important;
 }
 
@@ -77,9 +82,10 @@ body.ai-theme-light .ai-assistant-window.window-app {
 }
 
 /* --- EINGABEFELDER --- */
-.ai-assistant-window textarea,
-.ai-assistant-window input[type="text"],
-.ai-assistant-window select {
+/* Use ID selector to beat Realdark's (0,3,1) specificity */
+#ai-assistant-app textarea,
+#ai-assistant-app input[type="text"],
+#ai-assistant-app select {
     background-color: var(--ai-input-bg) !important;
     color: var(--ai-text) !important;
     border: 1px solid var(--ai-input-border) !important;
@@ -91,14 +97,14 @@ body.ai-theme-light .ai-assistant-window.window-app {
     box-sizing: border-box;
 }
 
-.ai-assistant-window textarea::placeholder {
+#ai-assistant-app textarea::placeholder {
     color: var(--ai-text);
     opacity: 0.5;
 }
 
-.ai-assistant-window textarea:focus,
-.ai-assistant-window input:focus,
-.ai-assistant-window select:focus {
+#ai-assistant-app textarea:focus,
+#ai-assistant-app input:focus,
+#ai-assistant-app select:focus {
     border-color: var(--ai-accent) !important;
     box-shadow: 0 0 5px var(--ai-accent) !important;
     outline: none;
@@ -181,6 +187,8 @@ body.ai-theme-light .ai-assistant-window.window-app {
     font-size: 0.9em;
     font-weight: bold;
     color: var(--ai-text-muted);
+    opacity: 0.7;
+    /* Visual muting */
     user-select: none;
     white-space: nowrap;
 }

@@ -110,19 +110,19 @@ const THEMES = {
     foundry: {
         label: "Foundry VTT (Standard)", url: "",
         vars: {
-            '--ai-bg': '#f7f3e8',
-            '--ai-text': '#191813',
-            '--ai-text-muted': 'rgba(0,0,0,0.6)',
-            '--ai-input-bg': 'rgba(255, 255, 255, 0.5)',
-            '--ai-input-border': 'rgba(0,0,0,0.2)',
-            '--ai-border-color': '#5e5c56',
-            '--ai-accent': '#782e22',
-            '--ai-gradient': 'linear-gradient(90deg, #782e22, #4a1c17)',
+            '--ai-bg': 'transparent',
+            '--ai-text': 'inherit',
+            '--ai-text-muted': 'inherit',
+            '--ai-input-bg': 'rgba(128, 128, 128, 0.1)',
+            '--ai-input-border': 'var(--color-border-light-2)',
+            '--ai-border-color': 'var(--color-border-light-2)',
+            '--ai-accent': '#ff6400',
+            '--ai-gradient': 'linear-gradient(90deg, #ff6400, #ff0000)',
             '--ai-font': '"Signika", sans-serif',
             '--ai-backdrop': 'none',
             '--ai-btn-text': '#fff',
-            '--wiz-section-bg': 'rgba(0,0,0,0.03)',
-            '--wiz-hint': 'rgba(0,0,0,0.6)',
+            '--wiz-section-bg': 'rgba(128,128,128,0.1)',
+            '--wiz-hint': 'inherit',
             '--wiz-option-bg': '#fff',
             '--wiz-option-color': '#000'
         },
@@ -231,7 +231,7 @@ Hooks.once('ready', async () => {
 
     if (!game.settings.get(MODULE_ID, 'firstRunConfigured')) showWelcomeWizard();
 
-    if (!game.settings.get(MODULE_ID, 'firstRunConfigured')) showWelcomeWizard();
+
 
     // --- Universal Injection System ---
     const injector = new UniversalButtonInjector();
@@ -248,29 +248,25 @@ class UniversalButtonInjector {
     start() {
         console.log("AI Assistant | Injector System V2 Started");
 
-        // 1. Hook into specific sheets
-        const hookHandler = (app, html, data) => {
-            this.attemptInjection(app, html);
-        };
+        const hookHandler = (app, html) => this.attemptInjection(app, html);
 
+        // Standard Hook Injection
         Hooks.on('renderApplication', hookHandler);
         Hooks.on('renderActorSheet', hookHandler);
         Hooks.on('renderItemSheet', hookHandler);
         Hooks.on('renderJournalSheet', hookHandler);
 
-        // 2. Observer for AppV2 / ShadowDOM / Delayed Rendering
+        // Observer for ShadowDOM / Delayed Rendering / AppV2
         this.observer = new MutationObserver((mutations) => {
             for (const mutation of mutations) {
                 for (const node of mutation.addedNodes) {
-                    if (node.nodeType === 1) { // Element
-                        // Check if this new node is a window or contains a window
-                        if (node.classList.contains('window-app') || node.tagName === 'FVTT-APPLICATION' || node.classList.contains('application')) {
-                            this.inspectNode(node);
-                        } else {
-                            // Deep scan for nested windows
-                            const windows = node.querySelectorAll?.('.window-app, fvtt-application, .application');
-                            if (windows?.length) windows.forEach(w => this.inspectNode(w));
-                        }
+                    if (node.nodeType !== 1) continue;
+
+                    if (node.classList.contains('window-app') || node.tagName === 'FVTT-APPLICATION' || node.classList.contains('application')) {
+                        this.inspectNode(node);
+                    } else {
+                        const windows = node.querySelectorAll?.('.window-app, fvtt-application, .application');
+                        if (windows?.length) windows.forEach(w => this.inspectNode(w));
                     }
                 }
             }
@@ -279,98 +275,72 @@ class UniversalButtonInjector {
     }
 
     inspectNode(node) {
-        // 1. Try direct lookup (standard apps)
+        // Direct Lookup (Standard Apps)
         const numericId = parseInt(node.id.split('-').pop());
         if (!isNaN(numericId) && ui.windows[numericId]) {
             this.attemptInjection(ui.windows[numericId], $(node));
             return;
         }
 
-        // 2. Search by Element or ID in ui.windows
         const windows = Object.values(ui.windows);
+
+        // Search by Element Reference
         let app = windows.find(w => w.element && w.element[0] === node);
 
-        if (!app) {
-            // 3. Search by ID match
-            app = windows.find(w => w.id === node.id);
-        }
+        // Search by ID Match
+        if (!app) app = windows.find(w => w.id === node.id);
 
         if (app) {
             this.attemptInjection(app, $(node));
             return;
         }
 
-        // 4. FALLBACK: Synthetic App for AppV2 / Unique Sheets NOT in ui.windows
-        let doc = null; // Initialize doc here to be accessible across patterns
+        // Fallback: Synthetic App for AppV2 / Unique Sheets
+        let doc = null;
 
-        // A. Owned Item Pattern (Actor-ID-Item-ID)
-        // Format: ItemSheet5e-Actor-3TOkBe3TyIaIK5t1-Item-rNDleUFJIu09mbl3
+        // Pattern A: Owned Item (Actor-ID-Item-ID)
         const ownedItemMatch = node.id.match(/Actor-([a-zA-Z0-9]{16})-Item-([a-zA-Z0-9]{16})/);
         if (ownedItemMatch) {
-            const actorId = ownedItemMatch[1];
-            const itemId = ownedItemMatch[2];
-            const actor = game.actors.get(actorId);
-            if (actor) {
-                doc = actor.items.get(itemId);
-            }
+            const actor = game.actors.get(ownedItemMatch[1]);
+            if (actor) doc = actor.items.get(ownedItemMatch[2]);
         }
 
-        // B. Generic ID Pattern (World Actor/Item/Journal)
-        let potentialId = null; // Declare potentialId here
+        // Pattern B: Generic ID (End of String)
         if (!doc) {
-            // ID Format often: "CharacterActorSheet-Actor-3TOkBe3TyIaIK5t1"
             const parts = node.id.split('-');
-            potentialId = parts.pop(); // Last part
-
-            // Try finding document
+            const potentialId = parts.pop();
             doc = game.actors.get(potentialId) || game.items.get(potentialId) || game.journal.get(potentialId);
 
-            // Sometimes ID is second to last if there is a suffix? (Unlikely but possible)
+            // Retry with second-to-last part if implicit suffix exists
             if (!doc && parts.length > 0) {
-                const alternativeId = parts.pop();
-                doc = game.actors.get(alternativeId) || game.items.get(alternativeId) || game.journal.get(alternativeId);
+                const altId = parts.pop();
+                doc = game.actors.get(altId) || game.items.get(altId) || game.journal.get(altId);
             }
         }
 
         if (doc) {
-            const syntheticApp = {
+            this.attemptInjection({
                 id: node.id,
                 document: doc,
                 element: $(node),
                 constructor: { name: "Syntheticv2App: " + node.classList[0] }
-            };
-            this.attemptInjection(syntheticApp, $(node));
+            }, $(node));
             return;
         }
     }
 
     attemptInjection(app, html) {
         if (!app) return;
+        if (!app.document && !app.object) return;
 
-        // Check for document presence immediately
-        if (!app.document && !app.object) {
-            return;
-        }
-
-        // Support both .document (Data) and .object (Legacy/Base)
         const doc = app.document || app.object;
+        if (this.injectedApps.has(app)) return;
 
-        if (this.injectedApps.has(app)) {
-            return;
-        }
+        const docName = doc.documentName || doc.type;
+        if (!["Actor", "Item", "JournalEntry"].includes(docName)) return;
 
-        const docName = doc.documentName || doc.type; // Fallback for some objects
-
-        // Filter: Only Actors, Items, Journals
-        if (!["Actor", "Item", "JournalEntry"].includes(docName)) {
-            return;
-        }
-
-        // Check Permissions
         const minRole = game.settings.get(MODULE_ID, 'minimumRole');
-        if (game.user.role < minRole) {
-            return;
-        }
+        if (game.user.role < minRole) return;
 
         // Find insertion point - Logic Update for D&D 5e v4
         const $window = html.closest ? html.closest('.window-app') : $(html).parents('.window-app');
@@ -648,199 +618,191 @@ function showWelcomeWizard() {
 }
 
 
-function startGeminiDialog(doc, specialContext = null) {
-    const systemName = game.settings.get(MODULE_ID, 'gameSystem');
-    const isGM = game.user.isGM;
-    const isOwner = doc.isOwner;
-    const defaultFull = game.settings.get(MODULE_ID, 'sendFullData');
-    const providerKey = game.settings.get(MODULE_ID, 'aiProvider') || 'gemini';
-    const url = THEMES[providerKey].url;
-    const isJournal = doc.documentName === "JournalEntry";
+const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
-    let allowUpdate = false;
-    const type = doc.documentName;
-    if (type === "Actor") allowUpdate = game.settings.get(MODULE_ID, 'playerCanUpdateActor');
-    else if (type === "Item") allowUpdate = game.settings.get(MODULE_ID, 'playerCanUpdateItem');
-    else if (type === "JournalEntry") allowUpdate = game.settings.get(MODULE_ID, 'playerCanUpdateJournal');
-    if (specialContext && specialContext.type === 'skill') allowUpdate = false;
-    const canUpdate = (isGM || (isOwner && allowUpdate)) && (!specialContext || specialContext.type !== 'skill');
+class AiAssistantApp extends HandlebarsApplicationMixin(ApplicationV2) {
+    constructor(doc, specialContext = null) {
+        super();
+        this.document = doc;
+        this.specialContext = specialContext;
 
-    const allFeatures = [
-        { id: 'chat', icon: 'fas fa-comments', label: loc('ModeChat'), condition: true, infoText: loc('InfoTextChat') },
-        { id: 'image', icon: 'fas fa-palette', label: loc('ModeImage'), condition: true, infoText: loc('InfoTextImage') },
+        // Initial State
+        this.activeMode = 'chat'; // Default, will verify permissions in prepareContext
+        this.expandPages = false;
+        this.promptValue = "";
+        this.sendFull = game.settings.get(MODULE_ID, 'sendFullData');
 
-        { id: 'story', icon: 'fas fa-book-open', label: loc('ModeStory'), condition: canUpdate && isJournal, infoText: loc('InfoTextStory') },
-        { id: 'update', icon: 'fas fa-wand-magic-sparkles', label: loc('ModeUpdate'), condition: canUpdate && !isJournal, infoText: loc('InfoText') }
-    ];
-
-    let pillsHTML = "";
-    let activeFound = false;
-    allFeatures.filter(f => f.condition).forEach((feat) => {
-        let isActive = "";
-        let isChecked = "";
-        if (!activeFound) { isActive = "active"; isChecked = "checked"; activeFound = true; }
-        pillsHTML += `<label class="gemini-pill ${isActive}" data-info="${feat.infoText}" data-mode="${feat.id}"><input type="radio" name="mode" value="${feat.id}" ${isChecked}><i class="${feat.icon}"></i> <span>${feat.label}</span></label>`;
-    });
-
-    let pageSelectionHTML = "";
-    if (isJournal && doc.pages.size > 0) {
-        let itemsHTML = "";
-
-
-        const pageList = Array.from(doc.pages);
-        pageList.forEach(p => {
-            const checkedAttr = "";
-
-            itemsHTML += `
-            <div style="display:flex; align-items:center; margin-bottom:4px; font-size:0.9em;">
-                <input type="checkbox" class="page-selector" value="${p.id}" ${checkedAttr} style="margin-right:8px;">
-                <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${p.name}">${p.name}</span>
-            </div>`;
-        });
-
-        pageSelectionHTML = `
-        <div id="page-selection-wrapper" style="display:none; margin-bottom:10px; background:var(--ai-input-bg); border:1px solid var(--ai-input-border); border-radius:6px; padding:5px;">
-            <div id="page-list-header" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center; padding:4px;">
-                <label style="font-weight:bold; font-size:0.9em; cursor:pointer;">${loc('SelectPages') || 'Seiten auswählen'} <i class="fas fa-chevron-down" style="font-size:0.8em; margin-left:5px;"></i></label>
-                <div style="font-size:0.8em;">
-                    <a id="pages-all" style="margin-right:5px; cursor:pointer;">Alle</a> / <a id="pages-none" style="margin-left:5px; cursor:pointer;">Keine</a>
-                </div>
-            </div>
-            <div id="page-list-content" style="display:none; margin-top:5px; padding-top:5px; border-top:1px solid var(--ai-input-border); max-height:150px; overflow-y:auto;">
-                ${itemsHTML}
-            </div>
-
-        </div>`;
+        // Determine Title
+        let title = `AI Assistant: ${doc.name}`;
+        if (specialContext && specialContext.type === 'skill') title = `AI Assistant: ${specialContext.name}`;
+        this.windowTitle = title;
     }
 
-    let title = `AI Assistant: ${doc.name}`;
-    if (specialContext && specialContext.type === 'skill') title = `AI Assistant: ${specialContext.name}`;
-
-    const content = `
-    <div class="ai-assistant-content">
-        <div class="form-group">
-            <label style="font-weight:bold; display:block; margin-bottom:8px; text-align:center;">${loc('ModeLabel')}</label>
-            <div class="gemini-nav-container">${pillsHTML}</div>
-        </div>
-        ${pageSelectionHTML}
-        <div class="form-group" id="prompt-section" style="display: flex; flex-direction: column; gap: 6px;">
-            <label style="font-weight: bold; font-size: 1.0em; text-align: center;">${loc('PromptLabel', { systemName })}</label>
-            <textarea name="prompt" style="width:100%; height: 85px; padding: 8px; border-radius: 6px;" placeholder="${loc('PromptPlaceholder')}"></textarea>
-            <div class="gemini-checkbox-container">
-                <input type="checkbox" id="send-full" name="sendFull" ${defaultFull ? "checked" : ""}>
-                <label for="send-full" style="cursor:pointer; margin:0; opacity:0.8;">${loc('CheckboxFullData')}</label>
-            </div>
-        </div>
-        <p style="font-size: 0.85em; opacity:0.6; margin-top: 10px; margin-bottom: 15px; font-style: italic; text-align: center; line-height: 1.3;">
-            <i class="fas fa-info-circle gemini-info-icon"></i><span id="info-text">${allFeatures[0].infoText}</span>
-        </p>
-    </div>`;
-
-    const dialog = new Dialog({
-        title: title, content: content,
-        buttons: {
-            go: {
-                label: loc('BtnCopy'), icon: '<i class="fas fa-copy"></i>',
-                callback: (html) => {
-                    const prompt = html.find('[name="prompt"]').val();
-                    const mode = html.find('input[name="mode"]:checked').val();
-                    const sendFull = html.find('input[name="sendFull"]').is(':checked');
-
-                    let selectedPageIds = null;
-                    if (isJournal) {
-                        const checkboxes = html.find('.page-selector:checked');
-                        if (checkboxes.length > 0) {
-                            selectedPageIds = [];
-                            checkboxes.each((i, el) => selectedPageIds.push($(el).val()));
-                        }
-                    }
-
-                    handlePromptExecution(doc, prompt, mode, sendFull, false, selectedPageIds, specialContext);
-                }
-            },
-            download: {
-                label: loc('BtnDownload'), icon: '<i class="fas fa-file-download"></i>',
-                callback: (html) => {
-                    const prompt = html.find('[name="prompt"]').val();
-                    const mode = html.find('input[name="mode"]:checked').val();
-                    const sendFull = html.find('input[name="sendFull"]').is(':checked');
-
-                    let selectedPageIds = null;
-                    if (isJournal) {
-                        const checkboxes = html.find('.page-selector:checked');
-                        if (checkboxes.length > 0) {
-                            selectedPageIds = [];
-                            checkboxes.each((i, el) => selectedPageIds.push($(el).val()));
-                        }
-                    }
-
-                    handlePromptExecution(doc, prompt, mode, sendFull, true, selectedPageIds, specialContext);
-                }
-            }
-        }, default: "go",
-        render: (html) => {
-            html.closest('.app').css('height', 'auto');
-            html.closest('.window-app').addClass('ai-assistant-window');
-            html.find('.dialog-button.default').addClass('gemini-main-button');
-            html.find('.dialog-button.download').addClass('gemini-secondary-button');
-
-            html.find('#page-list-header').click(() => {
-                html.find('#page-list-content').slideToggle(200);
-            });
-
-            // "Alle / Keine" Buttons Logik
-            html.find('#pages-all').click((e) => {
-                e.stopPropagation();
-                html.find('.page-selector').prop('checked', true);
-            });
-            html.find('#pages-none').click((e) => {
-                e.stopPropagation();
-                html.find('.page-selector').prop('checked', false);
-            });
-
-            const updateVisibility = (isInit = false) => {
-                const mode = html.find('input[name="mode"]:checked').val();
-                const pageWrapper = html.find('#page-selection-wrapper');
-                const promptSection = html.find('#prompt-section');
-                const sendFullCheckbox = html.find('#send-full');
-
-                // Auto-toggle Send Full Data based on mode
-                if (!isInit) {
-                    if (mode === 'chat' || mode === 'image' || mode === 'story') {
-                        sendFullCheckbox.prop('checked', false);
-                    } else if (mode === 'update') {
-                        sendFullCheckbox.prop('checked', true);
-                    }
-                } else {
-                    if (mode === 'chat' || mode === 'image' || mode === 'story') {
-                        sendFullCheckbox.prop('checked', false);
-                    } else if (mode === 'update') {
-                        sendFullCheckbox.prop('checked', true);
-                    }
-                }
-
-                if (isJournal) {
-                    pageWrapper.slideDown(200);
-                } else {
-                    pageWrapper.slideUp(200);
-                }
-
-                promptSection.slideDown(200);
-
-                const info = html.find(`.gemini-pill input[value="${mode}"]`).parent().data('info');
-                html.find('#info-text').text(info);
-                html.closest('.app').css('height', 'auto');
-            };
-
-            html.find('.gemini-pill').click(function () {
-                $(this).addClass('active').siblings().removeClass('active').find('input').prop('checked', false);
-                $(this).find('input').prop('checked', true);
-                updateVisibility(false);
-            });
-            updateVisibility(true);
+    static DEFAULT_OPTIONS = {
+        tag: "form",
+        id: "ai-assistant-app",
+        window: {
+            icon: "fas fa-brain",
+            resizable: true,
+            contentClasses: ["ai-assistant-window"]
+        },
+        position: {
+            width: 500,
+            height: "auto"
+        },
+        actions: {
+            selectMode: AiAssistantApp.onSelectMode,
+            togglePageList: AiAssistantApp.onTogglePageList,
+            selectAllPages: AiAssistantApp.onSelectAllPages,
+            selectNonePages: AiAssistantApp.onSelectNonePages,
+            copy: AiAssistantApp.onCopy,
+            download: AiAssistantApp.onDownload
         }
-    });
-    dialog.render(true);
+    };
+
+    static PARTS = {
+        main: {
+            template: "modules/phils-ai-assistant/templates/assistant-window.hbs"
+        }
+    };
+
+    get title() {
+        return this.windowTitle;
+    }
+
+    async _prepareContext(options) {
+        const doc = this.document;
+        const specialContext = this.specialContext;
+        const systemName = game.settings.get(MODULE_ID, 'gameSystem');
+        const isJournal = doc.documentName === "JournalEntry";
+        const isGM = game.user.isGM;
+
+        // Permission Check for Updates
+        let allowUpdate = false;
+        const type = doc.documentName;
+        if (type === "Actor") allowUpdate = game.settings.get(MODULE_ID, 'playerCanUpdateActor');
+        else if (type === "Item") allowUpdate = game.settings.get(MODULE_ID, 'playerCanUpdateItem');
+        else if (type === "JournalEntry") allowUpdate = game.settings.get(MODULE_ID, 'playerCanUpdateJournal');
+
+        // Skill context prevents updates usually
+        if (specialContext && specialContext.type === 'skill') allowUpdate = false;
+
+        const canUpdate = (isGM || (doc.isOwner && allowUpdate)) && (!specialContext || specialContext.type !== 'skill');
+
+        const allFeatures = [
+            { id: 'chat', icon: 'fas fa-comments', label: loc('ModeChat'), condition: true, infoText: loc('InfoTextChat') },
+            { id: 'image', icon: 'fas fa-palette', label: loc('ModeImage'), condition: true, infoText: loc('InfoTextImage') },
+            { id: 'story', icon: 'fas fa-book-open', label: loc('ModeStory'), condition: canUpdate && isJournal, infoText: loc('InfoTextStory') },
+            { id: 'update', icon: 'fas fa-wand-magic-sparkles', label: loc('ModeUpdate'), condition: canUpdate && !isJournal, infoText: loc('InfoText') }
+        ];
+
+        // Filter valid modes
+        const modes = allFeatures.filter(f => f.condition).map(f => ({
+            ...f,
+            isActive: (this.activeMode === f.id)
+        }));
+
+        // Ensure active mode is valid (fallback if permission changed or bad init)
+        if (!modes.find(m => m.id === this.activeMode)) {
+            this.activeMode = modes[0].id;
+            modes[0].isActive = true;
+        }
+
+        const activeFeature = modes.find(m => m.id === this.activeMode);
+
+        // Logic for default "Send Full" checkbox
+        // If mode switched, we might want to toggle it, but we respect user choice if they clicked it.
+        // For simplicity, we just use the stored state which we update on mode switch if needed.
+
+        return {
+            modes: modes,
+            activeInfoText: activeFeature ? activeFeature.infoText : "",
+            systemName: systemName,
+            promptValue: this.promptValue,
+            sendFull: this.sendFull,
+
+            // Pages
+            showPageSelection: isJournal && doc.pages.size > 0,
+            expandPages: this.expandPages,
+            pages: isJournal ? Array.from(doc.pages).map(p => ({ id: p.id, name: p.name })) : []
+        };
+    }
+
+    /* --- ACTIONS --- */
+
+    static onSelectMode(event, target) {
+        const mode = target.dataset.mode;
+        this.activeMode = mode;
+
+        // Auto-configure checkbox based on mode
+        if (mode === 'chat' || mode === 'image' || mode === 'story') {
+            this.sendFull = false;
+        } else if (mode === 'update') {
+            this.sendFull = true;
+        }
+
+        // Save Prompt (it's bound, but safety first)
+        const form = new FormData(this.element);
+        this.promptValue = form.get("prompt");
+
+        this.render(true);
+    }
+
+    static onTogglePageList(event, target) {
+        this.expandPages = !this.expandPages;
+        // Persist prompt
+        const form = new FormData(this.element);
+        this.promptValue = form.get("prompt");
+        this.render(true);
+    }
+
+    static onSelectAllPages(event, target) {
+        const checkboxes = this.element.querySelectorAll('.page-selector');
+        checkboxes.forEach(c => c.checked = true);
+    }
+
+    static onSelectNonePages(event, target) {
+        const checkboxes = this.element.querySelectorAll('.page-selector');
+        checkboxes.forEach(c => c.checked = false);
+    }
+
+    static async onCopy(event, target) {
+        await this.handleSubmission(false);
+    }
+
+    static async onDownload(event, target) {
+        await this.handleSubmission(true);
+    }
+
+    /* --- LOGIC --- */
+
+    async handleSubmission(isDownload) {
+        const form = new FormData(this.element);
+        const prompt = form.get("prompt");
+        const sendFull = form.get("sendFull") === "on";
+        const mode = this.activeMode; // Radio buttons are tricky in V2 actions, simpler to track state or read form
+        // actually form.get('mode') works if they are inputs.
+
+        // Get Pages
+        let selectedPageIds = null;
+        if (this.document.documentName === "JournalEntry") {
+            // FormData doesn't return all checked values for same name easily in native API without getAll
+            // But we can check the elements
+            const checked = this.element.querySelectorAll('.page-selector:checked');
+            if (checked.length > 0) {
+                selectedPageIds = Array.from(checked).map(c => c.value);
+            }
+        }
+
+        this.close(); // Close immediately as per original behavior? OR keep open? 
+        // Original Dialog buttons closed it.
+
+        handlePromptExecution(this.document, prompt, mode, sendFull, isDownload, selectedPageIds, this.specialContext);
+    }
+}
+
+function startGeminiDialog(doc, specialContext = null) {
+    new AiAssistantApp(doc, specialContext).render(true);
 }
 
 
@@ -1081,30 +1043,24 @@ function showResultDialog(doc, initialContent = "", errorMsg = null) {
 function getCleanData(doc, sendFull, allowedPageIds = null) {
     const rawData = doc.toObject();
 
+    // Technical/Internal fields to strip
+    const blocklist = [
+        "_stats", "ownership", "flags", "sort", "folder", "_key",
+        "prototypeToken", "img", "thumb", "effects"
+    ];
 
-    delete rawData._stats;
-    delete rawData.ownership;
-    delete rawData.flags;
-    delete rawData.sort;
-    delete rawData.folder;
-    delete rawData._key;
-    delete rawData.prototypeToken; // Visual data, huge and irrelevant
-    delete rawData.img;
-    delete rawData.thumb;
-    delete rawData.effects; // Active effects are often redundant or technical
+    if (!sendFull) blocklist.push("_id");
 
-    // Remove IDs if not sending full data (IDs are needed for Update mode)
-    if (!sendFull) {
-        delete rawData._id;
-    }
+    blocklist.forEach(key => delete rawData[key]);
 
     if (doc.documentName === "JournalEntry" && rawData.pages && allowedPageIds) {
         rawData.pages = rawData.pages.filter(p => allowedPageIds.includes(p._id));
     }
 
+    // Spellcasting Entry Context (PF2e)
     if (doc.type === "spellcastingEntry" && doc.parent) {
         const associatedSpells = doc.parent.items.filter(i => i.type === "spell" && i.system.location?.value === doc.id);
-        rawData.containedSpells = associatedSpells.map(s => { return { name: s.name, level: s.system.level?.value }; });
+        rawData.containedSpells = associatedSpells.map(s => ({ name: s.name, level: s.system.level?.value }));
     }
 
     // System Data Cleanup

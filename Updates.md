@@ -1,3 +1,10 @@
+## v1.3.0 - ApplicationV2 & Theme Compatibility
+*   **ApplicationV2 Migration:** This module has been successfully migrated to Foundry V13's `ApplicationV2` API, ensuring robust performance and future compatibility.
+*   **Theme Standardization:**
+    *   **Unified Look:** All AI providers (Gemini, ChatGPT, Claude, etc.) now use a consistent, transparent window design that perfectly integrates with global themes (like `phils-pf2e-realdark`).
+    *   **Custom Branding:** Each AI provider now only modifies the accent colors (buttons, gradients) and font families, keeping the overall UI clean and consistent.
+*   **Backward Compatibility:** Standardized input styling ensures readability across both Light and Dark themes.
+
 # Changelog
 
 ## v1.2.1 - D&D 5e AppV2 & Universal Compatibility
