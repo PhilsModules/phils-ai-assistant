@@ -1,78 +1,89 @@
-# Phil's AI Assistant 🧠
+<div align="center">
+
+# 🧠 Phil's AI Assistant
 
 ![Foundry v13 Compatible](https://img.shields.io/badge/Foundry-v13-brightgreen)
 ![Foundry v12 Compatible](https://img.shields.io/badge/Foundry-v12-green)
 ![License](https://img.shields.io/badge/License-GPLv3-blue)
 ![Version](https://img.shields.io/badge/Version-1.3.0-orange)
 
-
 <a href="Updates.md"><img src="https://img.shields.io/badge/CHECK-Changelog-blue" style="height: 25px;"></a>
 <a href="https://www.patreon.com/PhilsModules"><img src="https://img.shields.io/badge/SUPPORT-Patreon-ff424d?logo=patreon" style="height: 25px;"></a>
 
-**Phil's AI Assistant** connects your Foundry VTT world with the power of modern AI (Google Gemini, ChatGPT, Claude, Copilot, Perplexity).
+<br/>
+
+**Connect your Foundry VTT world with the power of modern AI.** *(Google Gemini, ChatGPT, Claude, Copilot, Perplexity)*
+
+</div>
+
+---
+
+## 🚀 Overview
+
+**Phil's AI Assistant** acts as an intelligent "Prompt Engineer". It reads data from your actors, items, or journals, creates the perfect prompt for the AI, and you simply copy it into the chat window of your favorite AI service.
+
+### ✨ The Core Feature: No API Costs!
+You don't need expensive API keys. This module is designed to work seamlessly with the **free web versions** of Gemini, ChatGPT, & Co.
 
 > [!NOTE]
-> **Compatibility:** This module is explicitly tested and optimized for **D&D 5e** and **Pathfinder 2e**.
-> While the universal injection logic usually works with other systems, full verified support is currently focused on these two.
-> If you encounter issues with other systems, please report them on [GitHub](https://github.com/PhilsModules/phils-ai-assistant/issues).
+> **Compatibility**
+> This module is explicitly tested and optimized for **D&D 5e** and **Pathfinder 2e**.
+>
+> While the universal injection logic usually works with other systems, full verified support is currently focused on these two. If you encounter issues with other systems, please report them on [GitHub](https://github.com/PhilsModules/phils-ai-assistant/issues).
 
 > [!IMPORTANT]
-> **D&D 5e Note:** For Items in a character's inventory, the **"Brain Button"** currently ONLY appears when you open the item via **Right Click -> View Item**. It does not appear in the inline expansion (expand button) at this time.
+> **D&D 5e Specifics**
+> For Items in a character's inventory, the **"Brain Button"** currently ONLY appears when you open the item via **Right Click -> View Item**. It does not appear in the inline expansion (expand button) at this time.
 
-The core feature: **You don't need expensive API keys!**
-The module acts as an intelligent "Prompt Engineer". It reads data from your actors, items, or journals, creates the perfect prompt for the AI, and you simply copy it into the chat window of your favorite AI service.
+---
 
+## 🛠️ Features & Modes
 
-
-## 🚀 Features
-
-* **No API Costs:** Works with the free web versions of Gemini, ChatGPT, & Co.
 * **Context-Aware:** Automatically reads stats, descriptions, and rules from your items and actors.
-* **5 Powerful Modes:**
-    * 💬 **Chat / Lore:** Ask questions about rules or the backstory of an item.
-    * 🎨 **Image Prompts:** Generates detailed visual descriptions based on character stats.
-    * ✏️ **Update / Edit:** Let the AI modify stats, rewrite descriptions, or fix typos.
-    * 📖 **Write Story:** Have the AI write creative content for your Journal entries.
-
-
 * **Safety First:** Automatically creates a **Backup** (Copy) of your Journal before applying changes.
-* **Smart Paste:** You can paste the full AI response text. The module automatically finds and extracts the JSON code block.
-* **Pathfinder 2e Optimized:** Special logic for spell lists, skills, and equipment (but compatible with most systems).
+* **Smart Paste:** Paste the full AI response text directly. The module automatically filters out the JSON code block.
+* **PF2e Optimized:** Special logic for spell lists, skills, and equipment.
+
+### Available Modes
+
+| Mode | Icon | Description |
+| :--- | :---: | :--- |
+| **Chat / Lore** | 💬 | Ask questions about rules, mechanics, or the backstory of an item. |
+| **Image Prompts** | 🎨 | Generates detailed visual descriptions based on character stats (for Midjourney/DALL-E). |
+| **Update / Edit** | ✏️ | Let the AI modify stats, rewrite descriptions, or fix typos directly in the item. |
+| **Write Story** | 📖 | Have the AI write creative content, descriptions, or plot hooks for your Journal entries. |
+
+---
 
 ## 📦 Installation
 
-1.  Open Foundry VTT.
+1.  Open **Foundry VTT**.
 2.  Go to the **Add-on Modules** tab.
 3.  Click **Install Module**.
 4.  Paste the following **Manifest URL** into the field:
-    ```
+    ```bash
     https://github.com/PhilsModules/phils-ai-assistant/releases/latest/download/module.json
     ```
 5.  Click **Install**.
 
+---
+
 ## 📖 How to Use
 
-### 1. The "Brain Button"
-Once activated, you will find a small 🧠 brain icon on character sheets, items, and journal entries (in the header bar).
+### 1. The "Brain Button" 🧠
+Once activated, you will find a small brain icon on character sheets, items, and journal entries (usually in the window header).
 
 ### 2. Select Mode
-Click the icon and choose what you want to do:
-* **Chat / Lore:** "How does this spell work?"
-* **Image:** Creates a prompt for Midjourney/DALL-E.
-* **Update:** "Make this dagger magical and add fire damage."
-* **Write Story:** "Write a dramatic intro for this location."
-
+Click the icon and choose your desired action (e.g., *"Make this dagger magical and add fire damage"*).
 
 ### 3. Copy & Paste Workflow
 1.  The module generates an optimized prompt.
 2.  Click **"Copy & Open AI"**.
 3.  Paste the text into Gemini/ChatGPT (CTRL+V).
-4.  **(Update/Story/Translate):**
+4.  **(For Updates/Stories):**
     * Copy the **entire response** from the AI.
     * Click the **"Paste"** button in the Foundry result window.
     * Click **Apply Changes**.
-
----
 
 ---
 
@@ -80,82 +91,36 @@ Click the icon and choose what you want to do:
 
 **Looking for the Translation Feature?**
 The translation functionality has been moved to a standalone module to keep things clean and focused.
-You can find **Phil's Journal Translator** here:
-[https://github.com/PhilsModules/phils-journal-translator](https://github.com/PhilsModules/phils-journal-translator)
+
+👉 **[Phil's Journal Translator](https://github.com/PhilsModules/phils-journal-translator)**
 
 ---
 
-# 🇩🇪 Deutsche Beschreibung
+<div align="center">
+
+## 🇩🇪 Deutsche Beschreibung
 
 **Dein kostenloser KI-Begleiter für Foundry VTT.**
+
+</div>
 
 Phil's AI Assistant verbindet deine Foundry VTT Welt mit der Power moderner KI (Google Gemini, ChatGPT, Claude, Copilot, Perplexity).
 
 Das Besondere: **Du brauchst keine teuren API-Keys!**
 Das Modul arbeitet als intelligenter "Prompt-Engineer". Es liest die Daten deiner Akteure oder Gegenstände, erstellt den perfekten Befehl (Prompt) für die KI, und du musst ihn nur noch in das Chat-Fenster deiner Lieblings-KI kopieren.
 
-## 🆕 Neu in v1.1.0
-* **Optimierte Daten:** Technischer Ballast (Flags, Stats) wird nun **immer** entfernt -> **Bis zu 50% kleiner** für ALLE Modi!
-* **Diet Mode:** Chat & Bild Modi nutzen minifiziertes JSON & entfernen IDs -> **Zusätzlich 30% kleiner** für maximalen Speed.
-* **Smart UI:** Der "Viel Kontext" Haken passt sich automatisch an (Chat vs. Update).
-* **Bessere Prompts:** Optimierte Anweisungen für Bilder und Updates.
+### 🚀 Highlights
+* **Keine API-Kosten:** Nutze einfach die kostenlosen Web-Versionen.
+* **Daten-Optimierung:** Technischer Ballast wird entfernt, um Tokens zu sparen.
+* **Sicherheit:** Automatische Backups deiner Journale vor Änderungen.
 
-## 🚀 Funktionen
+### 📖 Bedienung
+1.  **Der "Brain-Button":** Klicke auf das 🧠 Symbol in Charakterbögen oder Items.
+2.  **Workflow:**
+    * Wähle einen Modus (Chat, Bild, Update, Story).
+    * Klicke **"Kopieren & KI öffnen"**.
+    * Füge den Text bei Gemini/ChatGPT ein.
+    * Kopiere die Antwort der KI und füge sie im Foundry-Fenster ein -> **Änderungen anwenden**.
 
-* **Keine API-Kosten:** Funktioniert mit den kostenlosen Web-Versionen von Gemini, ChatGPT & Co.
-* **Kontext-Bewusst:** Liest automatisch Werte, Beschreibungen und Regeln.
-* **5 Mächtige Modi:**
-    * 💬 **Chat / Lore:** Stelle Fragen zu Regeln oder Hintergrundgeschichten.
-    * 🎨 **Image Prompts:** Erstellt detaillierte Bildbeschreibungen für dein Character-Art.
-    * ✏️ **Werte anpassen:** Lass die KI Werte ändern oder Rechtschreibung korrigieren.
-    * 📖 **Geschichte schreiben:** Lass die KI ganze Journal-Seiten verfassen.
-
-* **Smart Paste:** Du kannst die ganze Antwort der KI einfügen. Das Modul filtert den Code automatisch heraus.
-* **Sicherheit:** Erstellt automatisch ein **Backup** (Kopie) deines Journals, bevor Änderungen angewendet werden.
-
-## 📦 Installation
-
-1.  Öffne Foundry VTT.
-2.  Gehe zum Reiter **Add-on Modules**.
-3.  Klicke auf **Install Module**.
-4.  Füge die folgende **Manifest URL** unten ein:
-    ```
-    https://github.com/PhilsModules/phils-ai-assistant/releases/latest/download/module.json
-    ```
-5.  Klicke auf **Install**.
-
-## 📖 Bedienung
-
-### 1. Der "Brain-Button"
-Nach der Aktivierung findest du in den Charakterbögen, Items und Journalen (oben in der Leiste) ein kleines 🧠 Gehirn-Symbol.
-
-### 2. Workflow
-1.  Klicke auf das Symbol und wähle den Modus.
-2.  Das Modul generiert einen optimierten Prompt -> **"Kopieren & KI öffnen"**.
-3.  Füge den Text bei Gemini/ChatGPT ein.
-4.  Kopiere die Antwort der KI und füge sie im Foundry-Fenster ein -> **Änderungen anwenden**.
-
----
-
-## ⚙️ Einstellungen & Tipps
-* **Standard KI:** Lege fest, welcher Dienst sich standardmäßig öffnet.
-* **Pathfinder 2e:** Optimierte Logik für Zauberlisten und Skills.
-
----
-
-## 👨‍💻 Author
-* **Phil** (GitHub: [PhilsModules](https://github.com/PhilsModules))
-
-## 📄 License
-This module is licensed under the [GPL-3.0 License](LICENSE).
-
----
-<div align="center">
-    <h2>❤️ Support the Development</h2>
-    <p>If you enjoy this module and want to support open-source development for Foundry VTT, check out my Patreon!</p>
-    <p>Gefällt dir das Modul? Unterstütze die Weiterentwicklung auf Patreon!</p>
-    <a href="https://www.patreon.com/PhilsModules">
-        <img src="https://c5.patreon.com/external/logo/become_a_patron_button.png" alt="Become a Patron" />
-    </a>
-    <p>Made with ❤️ for the Foundry VTT Community</p>
-</div>
+### 📦 Installation
+Füge die folgende URL im Foundry VTT "Install Module" Fenster ein:
