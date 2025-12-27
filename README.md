@@ -37,14 +37,15 @@
 
 **Dein kostenloser KI-Begleiter für Foundry VTT.**
 
-Phil's AI Assistant verbindet deine Foundry VTT Welt mit der Power moderner KI (Google Gemini, ChatGPT, Claude, Copilot, Perplexity).
+Phil's AI Assistant verbindet deine Foundry VTT Welt mit der Power moderner KI (Google Gemini, ChatGPT, Claude, Copilot, Perplexity, Ollama).
 
 Das Besondere: **Du brauchst keine teuren API-Keys!**
 Das Modul arbeitet als intelligenter "Prompt-Engineer". Es liest die Daten deiner Akteure oder Gegenstände, erstellt den perfekten Befehl (Prompt) für die KI, und du musst ihn nur noch in das Chat-Fenster deiner Lieblings-KI kopieren.
 
 ## 🚀 Funktionen
 
-* 💸 **Keine API-Kosten:** Funktioniert mit den kostenlosen Web-Versionen von Gemini, ChatGPT & Co.
+* 💸 **Keine API-Kosten:** Funktioniert mit den kostenlosen Web-Versionen von Gemini, ChatGPT & Co. oder **lokal mit Ollama**.
+* 🏠 **Ollama Support:** Nutze lokale KI-Modelle ohne Daten-Upload! Keine Copy & Paste nötig dank direkter API-Anbindung.
 * 🧠 **Kontext-Bewusst:** Liest automatisch Werte, Beschreibungen und Regeln aus deinen Items und Akteuren.
 * 🧹 **Smart Paste:** Du kannst die ganze Antwort der KI einfügen. Das Modul filtert den Code automatisch heraus.
 * 💾 **Safety First:** Erstellt automatisch ein **Backup** (Kopie) deines Journals, bevor Änderungen angewendet werden.
@@ -82,14 +83,15 @@ Nach der Aktivierung findest du in den Charakterbögen, Items und Journalen (obe
 
 **Your free AI companion for Foundry VTT.**
 
-Phil's AI Assistant connects your Foundry VTT world with the power of modern AI (Google Gemini, ChatGPT, Claude, Copilot, Perplexity).
+Phil's AI Assistant connects your Foundry VTT world with the power of modern AI (Google Gemini, ChatGPT, Claude, Copilot, Perplexity, Ollama).
 
 The core feature: **You don't need expensive API keys!**
 The module acts as an intelligent "Prompt Engineer". It reads data from your actors, items, or journals, creates the perfect prompt for the AI, and you simply copy it into the chat window of your favorite AI service.
 
 ## 🚀 Key Features
 
-* **No API Costs:** Works with the free web versions of Gemini, ChatGPT, & Co.
+* **No API Costs:** Works with the free web versions of Gemini, ChatGPT, & Co. or **locally with Ollama**.
+* 🏠 **Ollama Support:** Use local AI models without data upload! No copy & paste required thanks to direct API integration.
 * **Context-Aware:** Automatically reads stats, descriptions, and rules from your items and actors.
 * **Smart Paste:** You can paste the full AI response text. The module automatically finds and extracts the JSON code block.
 * **Safety First:** Automatically creates a **Backup** (Copy) of your Journal before applying changes.
