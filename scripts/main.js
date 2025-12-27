@@ -107,6 +107,27 @@ const THEMES = {
         },
         isDark: true
     },
+    ollama: {
+        label: "Ollama (Local)", url: "http://localhost:11434",
+        vars: {
+            '--ai-bg': 'rgba(20, 20, 20, 0.98)',
+            '--ai-text': '#ffffff',
+            '--ai-text-muted': 'rgba(255,255,255,0.6)',
+            '--ai-input-bg': 'rgba(40, 40, 40, 0.8)',
+            '--ai-input-border': 'rgba(255,255,255,0.15)',
+            '--ai-border-color': '#444',
+            '--ai-accent': '#caad8d', /* Sorrell Brown */
+            '--ai-gradient': 'linear-gradient(90deg, #ffffff, #caad8d)', /* White to Brown */
+            '--ai-font': '"Inter", sans-serif',
+            '--ai-backdrop': 'blur(5px)',
+            '--ai-btn-text': '#000',
+            '--wiz-section-bg': 'rgba(255,255,255,0.05)',
+            '--wiz-hint': 'rgba(255,255,255,0.6)',
+            '--wiz-option-bg': '#333',
+            '--wiz-option-color': '#fff'
+        },
+        isDark: true
+    },
     foundry: {
         label: "Foundry VTT (Standard)", url: "",
         vars: {
@@ -188,7 +209,7 @@ Hooks.once('init', async () => {
     game.settings.register(MODULE_ID, 'firstRunConfigured', { scope: 'client', config: false, type: Boolean, default: false });
     game.settings.register(MODULE_ID, 'worldDefaultProvider', {
         name: "AIASSISTANT.Settings.WorldDefault.Name", hint: "AIASSISTANT.Settings.WorldDefault.Hint", scope: 'world', config: true, type: String, default: 'gemini',
-        choices: { 'gemini': 'Google Gemini', 'chatgpt': 'ChatGPT', 'claude': 'Anthropic Claude', 'copilot': 'Microsoft Copilot', 'perplexity': 'Perplexity AI' }
+        choices: { 'gemini': 'Google Gemini', 'chatgpt': 'ChatGPT', 'claude': 'Anthropic Claude', 'copilot': 'Microsoft Copilot', 'perplexity': 'Perplexity AI', 'ollama': 'Ollama (Local)' }
     });
     game.settings.register(MODULE_ID, 'languageOverride', {
         name: "AIASSISTANT.Settings.Language.Name", hint: "AIASSISTANT.Settings.Language.Hint", scope: 'client', config: true, type: String, default: 'auto',
@@ -196,13 +217,19 @@ Hooks.once('init', async () => {
     });
     game.settings.register(MODULE_ID, 'aiProvider', {
         name: "AIASSISTANT.Settings.Provider.Name", hint: "AIASSISTANT.Settings.Provider.Hint", scope: 'client', config: true, type: String, default: 'gemini',
-        choices: { 'gemini': 'Google Gemini', 'chatgpt': 'ChatGPT', 'claude': 'Anthropic Claude', 'copilot': 'Microsoft Copilot', 'perplexity': 'Perplexity AI' },
+        choices: { 'gemini': 'Google Gemini', 'chatgpt': 'ChatGPT', 'claude': 'Anthropic Claude', 'copilot': 'Microsoft Copilot', 'perplexity': 'Perplexity AI', 'ollama': 'Ollama (Local)' },
         onChange: () => applyGlobalTheme()
     });
     game.settings.register(MODULE_ID, 'aiTheme', {
         name: "AIASSISTANT.Settings.Theme.Name", hint: "AIASSISTANT.Settings.Theme.Hint", scope: 'client', config: true, type: String, default: 'auto',
-        choices: { 'auto': 'Auto', 'gemini': 'Gemini Theme', 'chatgpt': 'ChatGPT Theme', 'claude': 'Claude Theme', 'copilot': 'Copilot Theme', 'perplexity': 'Perplexity Theme', 'foundry': 'Foundry VTT' },
+        choices: { 'auto': 'Auto', 'gemini': 'Gemini Theme', 'chatgpt': 'ChatGPT Theme', 'claude': 'Claude Theme', 'copilot': 'Copilot Theme', 'perplexity': 'Perplexity Theme', 'ollama': 'Ollama Theme', 'foundry': 'Foundry VTT' },
         onChange: () => applyGlobalTheme()
+    });
+    game.settings.register(MODULE_ID, 'ollamaUrl', {
+        name: "Ollama URL", hint: "The URL of your local Ollama instance (default: http://localhost:11434)", scope: 'client', config: true, type: String, default: 'http://localhost:11434'
+    });
+    game.settings.register(MODULE_ID, 'ollamaModel', {
+        name: "Ollama Model", hint: "The model to use (e.g. llama3, mistral, gemma:2b)", scope: 'client', config: true, type: String, default: 'llama3'
     });
     game.settings.register(MODULE_ID, 'gameSystem', { name: "AIASSISTANT.Settings.GameSystem.Name", hint: "AIASSISTANT.Settings.GameSystem.Hint", scope: 'world', config: true, type: String, default: 'Pathfinder 2e' });
     game.settings.register(MODULE_ID, 'minimumRole', { name: "AIASSISTANT.Settings.MinRole.Name", hint: "AIASSISTANT.Settings.MinRole.Hint", scope: 'world', config: true, type: Number, default: 4, choices: { 1: "Player", 2: "Trusted", 3: "Assistant", 4: "GM" }, onChange: () => location.reload() });
@@ -481,6 +508,7 @@ function showWelcomeWizard() {
                 <option value="claude" ${isSel('claude')}>Anthropic Claude</option>
                 <option value="copilot" ${isSel('copilot')}>Microsoft Copilot</option>
                 <option value="perplexity" ${isSel('perplexity')}>Perplexity AI</option>
+                <option value="ollama" ${isSel('ollama')}>Ollama (Local)</option>
             </select>
         </div>
         <div class="wizard-section">
@@ -493,6 +521,7 @@ function showWelcomeWizard() {
                 <option value="claude">Claude Theme</option>
                 <option value="copilot">Copilot Theme</option>
                 <option value="perplexity">Perplexity Theme</option>
+                <option value="ollama">Ollama Theme</option>
                 <option value="foundry">Foundry VTT (Standard)</option>
             </select>
         </div>
@@ -544,6 +573,7 @@ function showWelcomeWizard() {
                 <option value="claude" ${isSel('claude')}>Anthropic Claude</option>
                 <option value="copilot" ${isSel('copilot')}>Microsoft Copilot</option>
                 <option value="perplexity" ${isSel('perplexity')}>Perplexity AI</option>
+                <option value="ollama" ${isSel('ollama')}>Ollama (Local)</option>
             </select>
         </div>
         `;
@@ -824,6 +854,30 @@ async function handlePromptExecution(doc, userPrompt, mode, sendFull, isDownload
 
     const limit = game.settings.get(MODULE_ID, 'promptWarningLimit');
     const isOverLimit = (limit > 0 && fullPrompt.length > limit);
+
+    if (providerKey === 'ollama') {
+        // --- Ollama Direct Integration ---
+        if (isOverLimit) {
+            const confirm = await Dialog.confirm({
+                title: loc('LargePromptTitle'),
+                content: `<p>${loc('LargePromptBody', { size: fullPrompt.length })}</p><p>Soll trotzdem direkt an Ollama gesendet werden?</p>`
+            });
+            if (!confirm) return;
+        }
+
+        ui.notifications.info("Sende Anfrage an Ollama...");
+        const response = await callOllamaAPI(fullPrompt, systemName, url);
+
+        if (response) {
+            if (mode === 'update') {
+                const result = await processUpdate(doc, response);
+                if (typeof result === 'string') showResultDialog(doc, response, result);
+            } else {
+                showResultDialog(doc, response);
+            }
+        }
+        return;
+    }
 
     if (isDownload) {
         // Direct Download requested
@@ -1253,4 +1307,44 @@ function validateDeepIds(json, validIds, errors = [], path = "") {
         }
     }
     return errors;
+}
+
+// --- Ollama Client ---
+
+async function callOllamaAPI(fullPrompt, systemName, baseUrl) {
+    const model = game.settings.get(MODULE_ID, 'ollamaModel') || 'llama3';
+
+    // Ensure URL has no trailing slash and api/chat
+    const cleanUrl = baseUrl.replace(/\/$/, "");
+    const endpoint = `${cleanUrl}/api/chat`;
+
+    const payload = {
+        model: model,
+        messages: [
+            { role: "system", content: `You are a helpful assistant for the tabletop RPG system ${systemName}.` },
+            { role: "user", content: fullPrompt }
+        ],
+        stream: false
+    };
+
+    try {
+        const response = await fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            const errText = await response.text();
+            throw new Error(`Ollama API Error (${response.status}): ${errText}`);
+        }
+
+        const data = await response.json();
+        return data.message?.content || "";
+
+    } catch (err) {
+        console.error("AI Assistant | Ollama Error:", err);
+        ui.notifications.error(`Ollama Error: ${err.message}`);
+        return null;
+    }
 }

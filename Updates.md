@@ -1,3 +1,15 @@
+## v1.4.0 - Ollama Support (Local AI)
+
+### 🚀 New Features
+*   **Ollama Integration:** Added full support for **Ollama**, allowing you to run powerful Large Language Models directly on your local machine.
+    *   **Privacy First:** All data is processed locally (default: `localhost:11434`), ensuring complete privacy.
+    *   **Workflow:** Supports direct API integration for Chat, Updates, and Image (description) generation, bypassing the need for copy-paste.
+    *   **Customizable:** Configure your preferred Model (e.g., `llama3`, `mistral`) and Server URL in the module settings.
+*   **New Theme:** Added a dedicated "Ollama" theme with a sleek dark/sorrell brown aesthetic.
+
+### ✨ Improvements
+*   **Welcome Wizard:** Updated the setup wizard to include Ollama as a provider option.
+
 ## v1.3.0 - ApplicationV2 & Theme Compatibility
 *   **ApplicationV2 Migration:** This module has been successfully migrated to Foundry V13's `ApplicationV2` API, ensuring robust performance and future compatibility.
 *   **Theme Standardization:**
