@@ -226,10 +226,19 @@ Hooks.once('init', async () => {
         onChange: () => applyGlobalTheme()
     });
     game.settings.register(MODULE_ID, 'ollamaUrl', {
-        name: "Ollama URL", hint: "The URL of your local Ollama instance (default: http://localhost:11434)", scope: 'client', config: true, type: String, default: 'http://localhost:11434'
+        name: "AIASSISTANT.Settings.OllamaUrl.Name", hint: "AIASSISTANT.Settings.OllamaUrl.Hint", scope: 'client', config: true, type: String, default: 'http://localhost:11434'
     });
     game.settings.register(MODULE_ID, 'ollamaModel', {
-        name: "Ollama Model", hint: "The model to use (e.g. llama3, mistral, gemma:2b)", scope: 'client', config: true, type: String, default: 'llama3'
+        name: "AIASSISTANT.Settings.OllamaModel.Name", hint: "AIASSISTANT.Settings.OllamaModel.Hint", scope: 'client', config: true, type: String, default: 'llama3'
+    });
+    game.settings.register(MODULE_ID, 'ollamaApiMode', {
+        name: "AIASSISTANT.Settings.OllamaApiMode.Name",
+        hint: "AIASSISTANT.Settings.OllamaApiMode.Hint",
+        scope: 'client', config: true, type: String, default: 'native',
+        choices: {
+            'native': 'AIASSISTANT.Settings.OllamaApiMode.Native',
+            'openai': 'AIASSISTANT.Settings.OllamaApiMode.OpenAI'
+        }
     });
     game.settings.register(MODULE_ID, 'gameSystem', { name: "AIASSISTANT.Settings.GameSystem.Name", hint: "AIASSISTANT.Settings.GameSystem.Hint", scope: 'world', config: true, type: String, default: 'Pathfinder 2e' });
     game.settings.register(MODULE_ID, 'minimumRole', { name: "AIASSISTANT.Settings.MinRole.Name", hint: "AIASSISTANT.Settings.MinRole.Hint", scope: 'world', config: true, type: Number, default: 4, choices: { 1: "Player", 2: "Trusted", 3: "Assistant", 4: "GM" }, onChange: () => location.reload() });
@@ -840,7 +849,9 @@ function startGeminiDialog(doc, specialContext = null) {
 async function handlePromptExecution(doc, userPrompt, mode, sendFull, isDownload, selectedPageIds, specialContext) {
     const systemName = game.settings.get(MODULE_ID, 'gameSystem');
     const providerKey = game.settings.get(MODULE_ID, 'aiProvider') || 'gemini';
-    const url = THEMES[providerKey].url;
+    const url = providerKey === 'ollama'
+        ? (game.settings.get(MODULE_ID, 'ollamaUrl') || 'http://localhost:11434')
+        : THEMES[providerKey].url;
 
 
     let fullPrompt = "";
@@ -1309,42 +1320,69 @@ function validateDeepIds(json, validIds, errors = [], path = "") {
     return errors;
 }
 
-// --- Ollama Client ---
+// --- Ollama / OpenAI-compatible Client ---
 
 async function callOllamaAPI(fullPrompt, systemName, baseUrl) {
-    const model = game.settings.get(MODULE_ID, 'ollamaModel') || 'llama3';
-
-    // Ensure URL has no trailing slash and api/chat
+    const model = (game.settings.get(MODULE_ID, 'ollamaModel') || 'llama3').trim();
+    const apiMode = game.settings.get(MODULE_ID, 'ollamaApiMode') || 'native';
     const cleanUrl = baseUrl.replace(/\/$/, "");
-    const endpoint = `${cleanUrl}/api/chat`;
 
-    const payload = {
-        model: model,
-        messages: [
-            { role: "system", content: `You are a helpful assistant for the tabletop RPG system ${systemName}.` },
-            { role: "user", content: fullPrompt }
-        ],
-        stream: false
-    };
-
-    try {
-        const response = await fetch(endpoint, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-            const errText = await response.text();
-            throw new Error(`Ollama API Error (${response.status}): ${errText}`);
+    if (apiMode === 'openai') {
+        // OpenAI-compatible endpoint: works with Open WebUI, LM Studio, llama.cpp server,
+        // Ollama's /v1 endpoint, and any other OpenAI-API-compatible local inference server.
+        const endpoint = `${cleanUrl}/v1/chat/completions`;
+        const payload = {
+            model: model,
+            messages: [
+                { role: "system", content: `You are a helpful assistant for the tabletop RPG system ${systemName}.` },
+                { role: "user", content: fullPrompt }
+            ],
+            stream: false
+        };
+        try {
+            const response = await fetch(endpoint, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error(`API Error (${response.status}): ${errText}`);
+            }
+            const data = await response.json();
+            return data.choices?.[0]?.message?.content || "";
+        } catch (err) {
+            console.error("AI Assistant | OpenAI-compatible API Error:", err);
+            ui.notifications.error(`AI Error: ${err.message}`);
+            return null;
         }
-
-        const data = await response.json();
-        return data.message?.content || "";
-
-    } catch (err) {
-        console.error("AI Assistant | Ollama Error:", err);
-        ui.notifications.error(`Ollama Error: ${err.message}`);
-        return null;
+    } else {
+        // Native Ollama endpoint (default, backwards-compatible)
+        const endpoint = `${cleanUrl}/api/chat`;
+        const payload = {
+            model: model,
+            messages: [
+                { role: "system", content: `You are a helpful assistant for the tabletop RPG system ${systemName}.` },
+                { role: "user", content: fullPrompt }
+            ],
+            stream: false
+        };
+        try {
+            const response = await fetch(endpoint, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error(`Ollama API Error (${response.status}): ${errText}`);
+            }
+            const data = await response.json();
+            return data.message?.content || "";
+        } catch (err) {
+            console.error("AI Assistant | Ollama Error:", err);
+            ui.notifications.error(`Ollama Error: ${err.message}`);
+            return null;
+        }
     }
 }

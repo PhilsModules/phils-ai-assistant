@@ -41,6 +41,20 @@
         "Name": "Default AI for Players",
         "Hint": "Suggestion for new players."
       },
+      "OllamaUrl": {
+        "Name": "Ollama URL",
+        "Hint": "Base URL of your Ollama (or compatible) instance. Default: http://localhost:11434"
+      },
+      "OllamaModel": {
+        "Name": "Ollama Model",
+        "Hint": "Model name to use (e.g. llama3, mistral, gemma:2b). Must match exactly what the server reports."
+      },
+      "OllamaApiMode": {
+        "Name": "Ollama API Mode",
+        "Hint": "Native: uses Ollama's /api/chat endpoint. OpenAI-compatible: uses /v1/chat/completions — required for Open WebUI, LM Studio, llama.cpp, and other OpenAI-compatible servers.",
+        "Native": "Native Ollama (/api/chat)",
+        "OpenAI": "OpenAI-compatible (/v1/chat/completions)"
+      },
       "PromptWarning": {
         "Name": "Large Prompt Warning",
         "Hint": "At what character count should the download suggestion appear?",
