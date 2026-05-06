@@ -51,7 +51,9 @@
       },
       "OllamaApiMode": {
         "Name": "Ollama API-Modus",
-        "Hint": "Nativ: nutzt Ollamas /api/chat-Endpunkt (Standard). OpenAI-kompatibel: nutzt /v1/chat/completions — notwendig für Open WebUI, LM Studio, llama.cpp und andere OpenAI-kompatible Inferenz-Server."
+        "Hint": "Nativ: nutzt Ollamas /api/chat-Endpunkt. OpenAI-kompatibel: nutzt /v1/chat/completions — notwendig für Open WebUI, LM Studio, llama.cpp und andere OpenAI-kompatible Server.",
+        "Native": "Nativer Ollama (/api/chat)",
+        "OpenAI": "OpenAI-kompatibel (/v1/chat/completions)"
       },
       "PromptWarning": {
         "Name": "Warnung bei langen Prompts",
